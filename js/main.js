@@ -1675,69 +1675,57 @@
         console.log('📂 建议路径:', suggestedPath);
         console.log('📂 当前配置:', config.saveLocationPath);
         
-        // Open folder selection dialog
-        console.log('📂 调用 showOpenDialog...');
+        // 🔧 使用 JSX 调用文件夹选择对话框（CEP fs.showOpenDialog 回调不可靠）
+        console.log('📂 使用 JSX 选择文件夹...');
         
-        try {
-            window.cep.fs.showOpenDialog(
-                false,  // allowMultipleSelection
-                true,   // chooseDirectory
-                'Select Save Location / 选择保存位置', 
-                suggestedPath, 
-                null,   // fileTypes
-                function(result) {
-                    console.log('========================================');
-                    console.log('📂 文件夹选择回调触发');
-                    console.log('📂 result:', result);
-                    console.log('📂 result.err:', result.err);
-                    console.log('📂 result.data:', result.data);
-                    console.log('📂 NO_ERROR 常量:', window.cep.fs.NO_ERROR);
-                    console.log('========================================');
-                    
-                    if (result.err === window.cep.fs.NO_ERROR && result.data && result.data.length > 0) {
-                        const selectedPath = result.data[0];
-                        console.log('✅ 已选择文件夹:', selectedPath);
-                        
-                        // Update config
-                        config.saveLocationPath = selectedPath;
-                        saveConfig();
-                        console.log('✅ 配置已保存');
-                        
-                        // Update UI
-                        const inputElement = document.getElementById('saveLocationPath');
-                        if (inputElement) {
-                            inputElement.value = selectedPath;
-                            inputElement.title = selectedPath;
-                            inputElement.placeholder = selectedPath;  // 也更新 placeholder
-                            console.log('✅ 输入框已更新，新值:', inputElement.value);
-                        } else {
-                            console.error('❌ 未找到 saveLocationPath 输入框');
-                        }
-                        
-                        // Create directory if not exists
-                        createCacheDirectory(selectedPath);
-                        
-                        // Update cache info
-                        setTimeout(() => {
-                            updateCacheInfo();
-                        }, 500);
-                        
-                        // Show success message
-                        console.log('✅ 显示成功消息');
-                        alert(t('message.saveLocationUpdated') || '保存位置已更新: ' + selectedPath);
-                    } else {
-                        console.log('⚠️ 用户取消选择或发生错误');
-                        console.log('⚠️ err:', result.err);
-                    }
-                }
-            );
+        csInterface.evalScript(`
+            var folder = Folder.selectDialog("选择保存位置 / Select Save Location");
+            if (folder) {
+                folder.fsName.replace(/\\\\\\\\/g, '/');
+            } else {
+                "CANCELLED";
+            }
+        `, function(result) {
+            console.log('========================================');
+            console.log('📂 JSX 文件夹选择结果:', result);
+            console.log('========================================');
             
-            console.log('✅ showOpenDialog 调用完成（等待用户选择）');
+            if (!result || result === 'EvalScript error.' || result === 'CANCELLED') {
+                console.log('⚠️ 用户取消或发生错误');
+                return;
+            }
             
-        } catch (error) {
-            console.error('❌ showOpenDialog 调用失败:', error);
-            alert('打开文件夹选择对话框失败: ' + error.message);
-        }
+            // 清理路径（移除多余的引号和反斜杠）
+            let selectedPath = result.replace(/^["']|["']$/g, '').replace(/\\\\/g, '/');
+            console.log('✅ 已选择文件夹:', selectedPath);
+            
+            // Update config
+            config.saveLocationPath = selectedPath;
+            saveConfig();
+            console.log('✅ 配置已保存');
+            
+            // Update UI
+            const inputElement = document.getElementById('saveLocationPath');
+            if (inputElement) {
+                inputElement.value = selectedPath;
+                inputElement.title = selectedPath;
+                console.log('✅ 输入框已更新，新值:', inputElement.value);
+            } else {
+                console.error('❌ 未找到 saveLocationPath 输入框');
+            }
+            
+            // Create directory if not exists
+            createCacheDirectory(selectedPath);
+            
+            // Update cache info
+            setTimeout(() => {
+                updateCacheInfo();
+            }, 500);
+            
+            // Show success message
+            console.log('✅ 显示成功消息');
+            alert((t('message.saveLocationUpdated') || '保存位置已更新') + '\n\n' + selectedPath);
+        });
     };
     
     /**
