@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ExtensionManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ExtensionBundleId="com.nanobanana.ai" ExtensionBundleVersion="1.0.0" Version="7.0">
+    <ExtensionList>
+        <Extension Id="com.nanobanana.ai.panel" Version="1.0.0"/>
+    </ExtensionList>
+    <ExecutionEnvironment>
+        <HostList>
+            <Host Name="PHSP" Version="[14.0,99.9]"/>
+            <Host Name="PHXS" Version="[14.0,99.9]"/>
+        </HostList>
+        <LocaleList>
+            <Locale Code="All"/>
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="7.0"/>
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+    <DispatchInfoList>
+        <Extension Id="com.nanobanana.ai.panel">
+            <DispatchInfo>
+                <Resources>
+                    <MainPath>./index.html</MainPath>
+                    <ScriptPath>./jsx/hostscript.jsx</ScriptPath>
+                    <CEFCommandLine>
+                        <Parameter>--enable-nodejs</Parameter>
+                        <Parameter>--mixed-context</Parameter>
+                        <Parameter>--disable-web-security</Parameter>
+                    </CEFCommandLine>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <Menu>Nano Banana AI</Menu>
+                    <Geometry>
+                        <Size>
+                            <Height>680</Height>
+                            <Width>400</Width>
+                        </Size>
+                        <MinSize>
+                            <Height>500</Height>
+                            <Width>360</Width>
+                        </MinSize>
+                        <MaxSize>
+                            <Height>1200</Height>
+                            <Width>600</Width>
+                        </MaxSize>
+                    </Geometry>
+                    <Icons>
+                        <Icon Type="Normal">./icons/icon.png</Icon>
+                        <Icon Type="RollOver">./icons/icon.png</Icon>
+                        <Icon Type="Disabled">./icons/icon-disabled.png</Icon>
+                        <Icon Type="DarkNormal">./icons/icon.png</Icon>
+                        <Icon Type="DarkRollOver">./icons/icon.png</Icon>
+                    </Icons>
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+</ExtensionManifest>

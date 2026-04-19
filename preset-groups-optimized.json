@@ -1,0 +1,647 @@
+[
+  {
+    "category": "快速操作",
+    "presets": [
+      {
+        "key": "makeHD",
+        "name": "高清化",
+        "prompt": "将画面变高清，提升细节和清晰度",
+        "size": "4K"
+      },
+      {
+        "key": "keepBrightness",
+        "name": "保持亮度",
+        "prompt": "保持亮度不变，只调整其他参数",
+        "size": "4K"
+      },
+      {
+        "key": "keepBackground",
+        "name": "背景不变",
+        "prompt": "背景保持不变，只修改主体",
+        "size": "4K"
+      },
+      {
+        "key": "keepPose",
+        "name": "姿态不变",
+        "prompt": "保持人物外观姿势不变",
+        "size": "4K"
+      },
+      {
+        "key": "naturalEdge",
+        "name": "边缘融合",
+        "prompt": "人物边缘与背景过渡自然，消除生硬感",
+        "size": "4K"
+      },
+      {
+        "key": "removeStains",
+        "name": "去污渍",
+        "prompt": "去除衣服上的污渍和皱褶，布料质感保留",
+        "size": "4K"
+      },
+      {
+        "key": "expandImage",
+        "name": "智能扩图",
+        "prompt": "填充空白区域，保持主体不变，自然延伸",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "人物美化",
+    "presets": [
+      {
+        "key": "skinRetouch",
+        "name": "磨皮美颜",
+        "prompt": "修复皮肤瑕疵，保留毛孔细节，肤色调至暖蜜糖色，瘦脸、美白、祛斑",
+        "size": "4K"
+      },
+      {
+        "key": "cgFace",
+        "name": "CG质感脸",
+        "prompt": "妆容与色彩层次精妙绝伦，五官以逼真写实精度雕琢，呈现栩栩如生的3D质感。真实美丽的脸庞经过美颜瘦脸",
+        "size": "4K"
+      },
+      {
+        "key": "makeupEnhance",
+        "name": "添加妆容",
+        "prompt": "给图片中的人添加口红、腮红、眉毛、眼妆、美瞳、妆容",
+        "size": "4K"
+      },
+      {
+        "key": "whiteTeeth",
+        "name": "美白牙齿",
+        "prompt": "将人物微笑时露出的牙齿色泽提亮一个度，变为自然亮白色。保持牙齿原有形态，避免过度漂白失真",
+        "size": "4K"
+      },
+      {
+        "key": "unifySkintone",
+        "name": "统一肤色",
+        "prompt": "将人物面部与颈部的肤色进行统一，消除色差。过渡自然，保留皮肤原有纹理，避免假面感",
+        "size": "4K"
+      },
+      {
+        "key": "eyeColor",
+        "name": "改变瞳色",
+        "prompt": "将人物眼睛颜色改为浅茶棕，眼神依然柔和、清澈。保留高光与睫毛细节，保持真实感",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "发型发质",
+    "presets": [
+      {
+        "key": "hairTexture",
+        "name": "发丝质感",
+        "prompt": "增加发丝的质感，发丝清晰分明，柔顺自然",
+        "size": "4K"
+      },
+      {
+        "key": "hairWind",
+        "name": "飘逸发丝",
+        "prompt": "头发像风吹起的一样，自然飘动，发丝随风飘扬，动感十足",
+        "size": "4K"
+      },
+      {
+        "key": "hairWind10",
+        "name": "轻度飘发",
+        "prompt": "让头发自然10°角飘动起来，微风吹拂的感觉",
+        "size": "4K"
+      },
+      {
+        "key": "messyHair",
+        "name": "散乱飘发",
+        "prompt": "有着散乱的头发随风飘动的感觉，发型不变，发丝随风飘动，动感自然",
+        "size": "4K"
+      },
+      {
+        "key": "hairLight",
+        "name": "发丝逆光",
+        "prompt": "给人物头发增加阳光逆光下的发丝光，光影自然柔和，画面氛围感真实，边缘光晕美丽",
+        "size": "4K"
+      },
+      {
+        "key": "removeStrayHair",
+        "name": "移除碎发",
+        "prompt": "移除杂乱的碎发，保持发型整洁",
+        "size": "4K"
+      },
+      {
+        "key": "shortHair",
+        "name": "改为短发",
+        "prompt": "将发型改为短发，保持人物其他特征不变",
+        "size": "4K"
+      },
+      {
+        "key": "longHair",
+        "name": "改为长发",
+        "prompt": "将发型改为长发，保持人物其他特征不变",
+        "size": "4K"
+      },
+      {
+        "key": "curlyHair",
+        "name": "改为卷发",
+        "prompt": "将发型改为卷发，自然波浪",
+        "size": "4K"
+      },
+      {
+        "key": "ponytail",
+        "name": "高马尾",
+        "prompt": "将发型改为高马尾，清爽利落",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "表情动作",
+    "presets": [
+      {
+        "key": "smile",
+        "name": "微笑表情",
+        "prompt": "将表情改为微笑，自然甜美",
+        "size": "4K"
+      },
+      {
+        "key": "surprised",
+        "name": "惊讶表情",
+        "prompt": "将表情改为惊讶，眼睛睁大",
+        "size": "4K"
+      },
+      {
+        "key": "angry",
+        "name": "怒视表情",
+        "prompt": "将表情改为怒视，眼神犀利",
+        "size": "4K"
+      },
+      {
+        "key": "shy",
+        "name": "害羞表情",
+        "prompt": "将表情改为害羞，脸颊微红",
+        "size": "4K"
+      },
+      {
+        "key": "crying",
+        "name": "哭泣表情",
+        "prompt": "将表情改为悲伤，哭泣着流下眼泪",
+        "size": "4K"
+      },
+      {
+        "key": "skirtWind",
+        "name": "裙摆飘动",
+        "prompt": "裙子微微吹起，自然飘逸，保持优雅",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "摄影视角",
+    "presets": [
+      {
+        "key": "frontView",
+        "name": "正面平视",
+        "prompt": "将视角改为正面平视，标准人像视角",
+        "size": "4K"
+      },
+      {
+        "key": "sideView",
+        "name": "侧面视角",
+        "prompt": "将视角改为侧面视角，展现轮廓",
+        "size": "4K"
+      },
+      {
+        "key": "backView",
+        "name": "背面视角",
+        "prompt": "将视角改为背面视角，展现背部细节",
+        "size": "4K"
+      },
+      {
+        "key": "topView",
+        "name": "俯视视角",
+        "prompt": "将视角改为俯视，从上往下拍摄",
+        "size": "4K"
+      },
+      {
+        "key": "bottomView",
+        "name": "仰视视角",
+        "prompt": "将视角改为仰视，从下往上拍摄，展现气势",
+        "size": "4K"
+      },
+      {
+        "key": "fisheyeTop",
+        "name": "鱼眼俯视",
+        "prompt": "鱼眼视角、极高的俯视角度，鱼眼镜头畸变、超广角近摄、产生强烈的桶形畸变，极具视觉冲击力、具有压迫感的亲密特写，主体居中充满画面、背景被极度虚化",
+        "size": "4K"
+      },
+      {
+        "key": "fisheyeBottom",
+        "name": "鱼眼仰视",
+        "prompt": "鱼眼视角、极高的仰视角度，鱼眼镜头畸变、超广角近摄、产生强烈的桶形畸变，极具视觉冲击力、具有压迫感的亲密特写，主体居中充满画面、背景被极度虚化",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "景别控制",
+    "presets": [
+      {
+        "key": "longShot",
+        "name": "远景",
+        "prompt": "将景别改为远景，展现环境全貌",
+        "size": "4K"
+      },
+      {
+        "key": "fullShot",
+        "name": "全景",
+        "prompt": "将景别改为全景，人物全身入镜",
+        "size": "4K"
+      },
+      {
+        "key": "mediumShot",
+        "name": "中景",
+        "prompt": "将景别改为中景，膝盖以上入镜",
+        "size": "4K"
+      },
+      {
+        "key": "closeUp",
+        "name": "近景",
+        "prompt": "将景别改为近景，胸部以上入镜",
+        "size": "4K"
+      },
+      {
+        "key": "extremeCloseUp",
+        "name": "特写",
+        "prompt": "将景别改为特写，面部细节",
+        "size": "4K"
+      },
+      {
+        "key": "bokeh",
+        "name": "光圈虚化",
+        "prompt": "将背景虚化，突出人物主体，景深效果自然，大光圈效果",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "光影效果",
+    "presets": [
+      {
+        "key": "godRays",
+        "name": "丁达尔光束",
+        "prompt": "在有树林或窗户的背景中，添加清晰的丁达尔效应光束，光束中可见微尘。增强画面的神圣感和氛围感",
+        "size": "4K"
+      },
+      {
+        "key": "backlight",
+        "name": "逆光氛围",
+        "prompt": "将画面光影改为逆光，轮廓光明显，氛围感强烈",
+        "size": "4K"
+      },
+      {
+        "key": "sideLight",
+        "name": "侧光效果",
+        "prompt": "将画面光影改为侧光，立体感强，阴影明显",
+        "size": "4K"
+      },
+      {
+        "key": "softLight",
+        "name": "柔光效果",
+        "prompt": "将画面光影改为柔光，光线柔和，阴影平缓",
+        "size": "4K"
+      },
+      {
+        "key": "rimLight",
+        "name": "轮廓光",
+        "prompt": "采用单一强光源照明，锐利地勾勒出人物肩部轮廓高光，边缘明亮",
+        "size": "4K"
+      },
+      {
+        "key": "sunset",
+        "name": "夕阳氛围",
+        "prompt": "将画面光影改为夕阳，温暖的侧光，金色色调",
+        "size": "4K"
+      },
+      {
+        "key": "dusk",
+        "name": "黄昏时刻",
+        "prompt": "背景环境改为黄昏的时候，天空渐变，柔和光线",
+        "size": "4K"
+      },
+      {
+        "key": "goldenHour",
+        "name": "黄金时刻",
+        "prompt": "将画面光影改成日出后或日落前温暖的侧光，金色光芒",
+        "size": "4K"
+      },
+      {
+        "key": "blueHour",
+        "name": "蓝调时刻",
+        "prompt": "在日落后，为天空和景物赋予静谧、幽蓝的色调",
+        "size": "4K"
+      },
+      {
+        "key": "candleLight",
+        "name": "烛光氛围",
+        "prompt": "将主光源改为一根蜡烛，光线微弱、摇曳，照亮人物的面部特写。阴影柔和且深邃，营造私密、复古的氛围",
+        "size": "4K"
+      },
+      {
+        "key": "bokehBg",
+        "name": "背景光斑",
+        "prompt": "在背景中添加美丽的圆形虚化光斑，模拟大光圈镜头效果。增强画面的梦幻感和层次感，突出人物主体",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "特效-水系",
+    "presets": [
+      {
+        "key": "rain",
+        "name": "下雨场景",
+        "prompt": "保持原图的构图和人物主体细节不变，仅将画面修改为下雨阴天氛围，同时人物身上增加流动的雨水细节，画面背景增加下雨效果，地面有雨水的反光",
+        "size": "4K"
+      },
+      {
+        "key": "waterReflection",
+        "name": "水面倒影",
+        "prompt": "让平静湖面的倒影变得更加清晰、逼真，如同镜面",
+        "size": "4K"
+      },
+      {
+        "key": "waterSparkle",
+        "name": "水面波光",
+        "prompt": "在阳光照射的水面上，添加闪烁的高光点(星芒效果)，波光粼粼",
+        "size": "4K"
+      },
+      {
+        "key": "waterFlow",
+        "name": "流水特效",
+        "prompt": "添加流动的水流效果，水流清澈透明，流动自然，有真实的水花和波纹",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "特效-雪雾",
+    "presets": [
+      {
+        "key": "snow",
+        "name": "飘雪场景",
+        "prompt": "在画面中添加动态模糊的雪花，有大有小，有前有后。为人物的头发和肩膀上添加少量积雪，增强雪景的真实感",
+        "size": "4K"
+      },
+      {
+        "key": "morningMist",
+        "name": "晨雾氛围",
+        "prompt": "在背景中添加一层薄薄的晨雾，远景模糊，近景清晰。人物身体边缘与雾气自然融合，整体色调饱和度降低，营造宁静、神秘的清晨氛围",
+        "size": "4K"
+      },
+      {
+        "key": "characterMist",
+        "name": "人物雾气",
+        "prompt": "人物周围环绕薄薄雾气，增添神秘感",
+        "size": "4K"
+      },
+      {
+        "key": "sceneMist",
+        "name": "场景雾气",
+        "prompt": "场景周围环绕薄薄雾气，增添氛围感",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "特效-光效",
+    "presets": [
+      {
+        "key": "firefly",
+        "name": "萤火虫",
+        "prompt": "在人物周围添加若干飞舞的萤火虫光点，光晕柔和，有明有暗，错落有致。为人物脸部和衣物增添微弱的暖色反光，营造梦幻、宁静的夏夜氛围",
+        "size": "4K"
+      },
+      {
+        "key": "lightBeams",
+        "name": "光束特效",
+        "prompt": "添加明显的光束效果，从光源向外扩散，光束清晰可见，增强戏剧性",
+        "size": "4K"
+      },
+      {
+        "key": "glowEffect",
+        "name": "发光效果",
+        "prompt": "为特定物体或区域添加柔和的发光效果，光晕自然扩散",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "特效-雷电",
+    "presets": [
+      {
+        "key": "lightning",
+        "name": "闪电效果",
+        "prompt": "在画面中添加真实的闪电特效，电光明亮，树枝状分叉，瞬间照亮场景，营造暴风雨的紧张氛围",
+        "size": "4K"
+      },
+      {
+        "key": "electricArc",
+        "name": "电弧特效",
+        "prompt": "添加电流弧光效果，蓝白色电弧在物体之间跳跃，科技感十足",
+        "size": "4K"
+      },
+      {
+        "key": "thunderStorm",
+        "name": "雷暴场景",
+        "prompt": "营造雷暴天气，天空乌云密布，闪电频繁，雨水倾盆，气氛紧张",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "特效-火焰",
+    "presets": [
+      {
+        "key": "fireEffect",
+        "name": "火焰特效",
+        "prompt": "添加真实的火焰效果，火焰摇曳，橙红色渐变，火星飞溅，热浪扭曲空气",
+        "size": "4K"
+      },
+      {
+        "key": "emberGlow",
+        "name": "余烬微光",
+        "prompt": "添加燃烧的余烬和微弱的火光，橙红色光点漂浮，温暖氛围",
+        "size": "4K"
+      },
+      {
+        "key": "explosion",
+        "name": "爆炸特效",
+        "prompt": "添加爆炸效果，火光冲天，烟雾翻滚，碎片四溅，震撼场面",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "材质替换",
+    "presets": [
+      {
+        "key": "metalTexture",
+        "name": "金属质感",
+        "prompt": "将材质改为金属，物体由不锈钢制成，带有金属光泽，物体具有光滑闪亮的表面",
+        "size": "4K"
+      },
+      {
+        "key": "glassTexture",
+        "name": "玻璃质感",
+        "prompt": "将材质改为玻璃，保持原有形态和结构，材质真实透明，光线折射自然",
+        "size": "4K"
+      },
+      {
+        "key": "ceramicTexture",
+        "name": "陶瓷质感",
+        "prompt": "将材质改为陶瓷，表面光滑细腻，有轻微的反光",
+        "size": "4K"
+      },
+      {
+        "key": "woodTexture",
+        "name": "木头质感",
+        "prompt": "将材质改为木头，木纹清晰，质感自然",
+        "size": "4K"
+      },
+      {
+        "key": "marbleTexture",
+        "name": "大理石质感",
+        "prompt": "将材质改为大理石，纹理优美，质感高级",
+        "size": "4K"
+      },
+      {
+        "key": "leatherTexture",
+        "name": "皮革质感",
+        "prompt": "将材质改为皮革，纹理清晰，质感柔软",
+        "size": "4K"
+      },
+      {
+        "key": "velvetTexture",
+        "name": "天鹅绒质感",
+        "prompt": "将材质改为天鹅绒(velvet)，表面柔软细腻，有丝绒光泽",
+        "size": "4K"
+      },
+      {
+        "key": "silkTexture",
+        "name": "丝绸质感",
+        "prompt": "将材质改为丝绸，光滑柔顺，有流动感的光泽",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "色调风格",
+    "presets": [
+      {
+        "key": "warmTone",
+        "name": "暖色调",
+        "prompt": "将画面色调改为暖色调，温暖舒适",
+        "size": "4K"
+      },
+      {
+        "key": "coolTone",
+        "name": "冷色调",
+        "prompt": "将画面色调改为冷色调，清冷静谧",
+        "size": "4K"
+      },
+      {
+        "key": "brightTone",
+        "name": "亮调",
+        "prompt": "将画面色调改为亮调，明亮通透",
+        "size": "4K"
+      },
+      {
+        "key": "darkTone",
+        "name": "暗调",
+        "prompt": "将画面色调改为暗调，深沉神秘",
+        "size": "4K"
+      },
+      {
+        "key": "highContrast",
+        "name": "高对比",
+        "prompt": "将画面色调改为高对比，黑白分明，层次丰富",
+        "size": "4K"
+      },
+      {
+        "key": "lowContrast",
+        "name": "低对比",
+        "prompt": "将画面色调改为低对比，柔和平缓",
+        "size": "4K"
+      },
+      {
+        "key": "desaturate",
+        "name": "低饱和",
+        "prompt": "将画面色调改为低饱和，色彩淡雅",
+        "size": "4K"
+      },
+      {
+        "key": "blackWhite",
+        "name": "黑白照片",
+        "prompt": "将照片转为黑白，并强化对比度与纹理，突出光影质感",
+        "size": "4K"
+      },
+      {
+        "key": "filmLook",
+        "name": "胶片风格",
+        "prompt": "为照片赋予富士VELVIA或柯达EKTAR胶片的经典色彩风格，颗粒感适中",
+        "size": "4K"
+      },
+      {
+        "key": "cinematicGrade",
+        "name": "电影调色",
+        "prompt": "电影级重光照明，电影级调色，用电影级光影重新绘制照片。实现复古或电影感滤镜效果，提升对比度，让暗部细节丰富，画面层次更饱满。呈现出温暖、柔和、富有电影感的画面。通过冷暖色彩对比，营造温馨柔和的电影氛围画面",
+        "size": "4K"
+      },
+      {
+        "key": "rawQuality",
+        "name": "RAW质感",
+        "prompt": "最终画面要求顶级相机拍摄，RAW照片质感，皮肤纹理真实细腻，光影层次丰富，画质非常清晰，8K画质",
+        "size": "4K"
+      }
+    ]
+  },
+  {
+    "category": "艺术风格",
+    "presets": [
+      {
+        "key": "cyberpunk",
+        "name": "赛博朋克",
+        "prompt": "将图片变成赛博朋克风格，霓虹灯光，未来科技感，暗黑都市",
+        "size": "4K"
+      },
+      {
+        "key": "inkPainting",
+        "name": "水墨画",
+        "prompt": "将图片变成工笔风格的中国传统水墨画，墨色渲染，意境深远",
+        "size": "4K"
+      },
+      {
+        "key": "vanGogh",
+        "name": "梵高油画",
+        "prompt": "将风景照片转为梵高风格油画，笔触厚重，色彩浓烈，富有表现力",
+        "size": "4K"
+      },
+      {
+        "key": "classicalOil",
+        "name": "古典油画",
+        "prompt": "参考古典油画风格，使用厚涂和晕染水粉技法，展现出颜料的涂抹质感，营造超古风主义美学的高级氛围感和层次感",
+        "size": "4K"
+      },
+      {
+        "key": "rococo",
+        "name": "洛可可宫廷",
+        "prompt": "洛可可宫廷风格，运用厚涂和晕染水粉技法，使画面呈现出丰富的颜料涂抹质感、颗粒感和肌理感，体现超古风主义美学",
+        "size": "4K"
+      },
+      {
+        "key": "to3dStyle",
+        "name": "转3D风格",
+        "prompt": "转为3D风格，柔光背景，保持IP形象和颜色一致，表面光滑如塑胶材质，带轻微阴影突出立体，OC渲染，C4D",
+        "size": "4K"
+      }
+    ]
+  }
+]

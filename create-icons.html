@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create Nano Banana AI Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        canvas {
+            border: 2px solid #333;
+            margin: 10px;
+            background: #0f0f0f;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .icon-set {
+            text-align: center;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nano Banana AI 图标生成器</h1>
+    <p>点击下载按钮保存图标文件到 icons 文件夹</p>
+    
+    <div>
+        <button onclick="downloadAll()">下载所有图标</button>
+    </div>
+
+    <div class="container">
+        <div class="icon-set">
+            <h3>Light (23x23)</h3>
+            <canvas id="icon23" width="23" height="23"></canvas>
+            <br>
+            <button onclick="download('icon23', 'icon.png')">下载</button>
+        </div>
+        
+        <div class="icon-set">
+            <h3>Dark (23x23)</h3>
+            <canvas id="icon23dark" width="23" height="23"></canvas>
+            <br>
+            <button onclick="download('icon23dark', 'icon-dark.png')">下载</button>
+        </div>
+        
+        <div class="icon-set">
+            <h3>Normal (46x46)</h3>
+            <canvas id="icon46" width="46" height="46"></canvas>
+            <br>
+            <button onclick="download('icon46', 'icon-normal.png')">下载</button>
+        </div>
+        
+        <div class="icon-set">
+            <h3>Retina (92x92)</h3>
+            <canvas id="icon92" width="92" height="92"></canvas>
+            <br>
+            <button onclick="download('icon92', 'icon-retina.png')">下载</button>
+        </div>
+    </div>
+
+    <script>
+        function drawIcon(canvas, size, isDark = false) {
+            const ctx = canvas.getContext('2d');
+            const scale = size / 23;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Background
+            if (!isDark) {
+                ctx.fillStyle = '#0f0f0f';
+                ctx.fillRect(0, 0, size, size);
+            }
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#8B5CF6');
+            gradient.addColorStop(0.5, '#6366F1');
+            gradient.addColorStop(1, '#8B5CF6');
+            
+            // Draw AI symbol with banana-like curve
+            ctx.save();
+            ctx.translate(size / 2, size / 2);
+            
+            // Draw stylized "AI" with banana curve
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 2 * scale;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Letter "A" with curve
+            ctx.beginPath();
+            ctx.moveTo(-6 * scale, 6 * scale);
+            ctx.lineTo(-3 * scale, -6 * scale);
+            ctx.lineTo(0, 6 * scale);
+            ctx.stroke();
+            
+            // Horizontal line of A
+            ctx.beginPath();
+            ctx.moveTo(-4.5 * scale, 0);
+            ctx.lineTo(-1.5 * scale, 0);
+            ctx.stroke();
+            
+            // Letter "I" 
+            ctx.beginPath();
+            ctx.moveTo(4 * scale, -6 * scale);
+            ctx.lineTo(4 * scale, 6 * scale);
+            ctx.stroke();
+            
+            // Top dot
+            ctx.beginPath();
+            ctx.arc(4 * scale, -8 * scale, 1.5 * scale, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Banana curve accent
+            ctx.beginPath();
+            ctx.arc(0, 0, 9 * scale, 0.2, Math.PI - 0.2, false);
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 1.5 * scale;
+            ctx.stroke();
+            
+            ctx.restore();
+            
+            // Add sparkle effects
+            const sparkles = [
+                {x: size * 0.15, y: size * 0.2, size: 1.5 * scale},
+                {x: size * 0.85, y: size * 0.3, size: 1 * scale},
+                {x: size * 0.2, y: size * 0.8, size: 1 * scale},
+                {x: size * 0.8, y: size * 0.75, size: 1.5 * scale}
+            ];
+            
+            sparkles.forEach(sparkle => {
+                ctx.save();
+                ctx.translate(sparkle.x, sparkle.y);
+                
+                // Draw sparkle
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 1 * scale;
+                ctx.beginPath();
+                ctx.moveTo(0, -sparkle.size);
+                ctx.lineTo(0, sparkle.size);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(-sparkle.size, 0);
+                ctx.lineTo(sparkle.size, 0);
+                ctx.stroke();
+                
+                ctx.restore();
+            });
+        }
+        
+        // Draw all icons
+        drawIcon(document.getElementById('icon23'), 23, false);
+        drawIcon(document.getElementById('icon23dark'), 23, true);
+        drawIcon(document.getElementById('icon46'), 46, false);
+        drawIcon(document.getElementById('icon92'), 92, false);
+        
+        function download(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        function downloadAll() {
+            setTimeout(() => download('icon23', 'icon.png'), 100);
+            setTimeout(() => download('icon23dark', 'icon-dark.png'), 300);
+            setTimeout(() => download('icon46', 'icon-normal.png'), 500);
+            setTimeout(() => download('icon92', 'icon-retina.png'), 700);
+            alert('正在下载所有图标文件...\n请将下载的文件移动到 icons 文件夹');
+        }
+    </script>
+</body>
+</html>

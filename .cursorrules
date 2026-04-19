@@ -1,0 +1,552 @@
+# Nano Banana AI Plugin - 开发规则
+
+## 🚨 关键错误教训（血泪史）
+
+### 1. JavaScript 语法错误 - 对象闭合括号
+
+**错误示例**：
+```javascript
+const PROMPT_PRESETS = {
+    preset1: { ... },
+    preset2: { ... }
+}
+};  // ❌ 多了一个 }
+```
+
+**正确写法**：
+```javascript
+const PROMPT_PRESETS = {
+    preset1: { ... },
+    preset2: { ... }
+};  // ✅ 只需要一个 }
+```
+
+**教训**：
+- ❌ **永远不要**在添加新对象属性后盲目添加闭合括号
+- ✅ **必须检查**对象的开始和结束括号是否匹配
+- ✅ **使用工具**：修改代码后立即运行 `node -c filename.js` 验证语法
+- ✅ **编辑器提示**：注意编辑器的括号配对高亮
+
+**影响**：
+- 整个 JavaScript 文件无法解析
+- 所有函数未定义
+- 插件完全无法使用
+- 用户体验极差
+
+---
+
+### 2. 修改代码后必须验证语法
+
+**错误流程**：
+```
+修改代码 → 直接安装 → 部署到用户环境 ❌
+```
+
+**正确流程**：
+```
+修改代码 → 语法验证 → 测试 → 安装 → 部署 ✅
+```
+
+**验证命令**：
+```bash
+# JavaScript 语法检查
+node -c js/main.js
+
+# JSX 语法检查（如果可能）
+# 注意：ExtendScript 语法可能与标准 JavaScript 不同
+
+# 如果没有错误，命令不会有输出
+# 如果有错误，会显示具体行号和错误信息
+```
+
+**教训**：
+- ✅ **每次修改后**都要运行语法检查
+- ✅ **提交前**再次验证所有文件
+- ✅ **安装前**确认语法正确
+- ✅ **建立习惯**：修改 → 验证 → 提交
+
+---
+
+### 3. 对象字面量的正确闭合
+
+**常见错误模式**：
+
+**错误1：多余的闭合括号**
+```javascript
+const obj = {
+    key1: value1,
+    key2: value2
+}
+};  // ❌ 多了一个 } 和 ;
+```
+
+**错误2：缺少分号**
+```javascript
+const obj = {
+    key1: value1,
+    key2: value2
+}  // ❌ 缺少分号
+```
+
+**错误3：嵌套对象闭合错误**
+```javascript
+const obj = {
+    nested: {
+        key: value
+    }
+}  // ❌ 内层对象多了闭合
+};
+```
+
+**正确写法**：
+```javascript
+// 单层对象
+const obj = {
+    key1: value1,
+    key2: value2
+};
+
+// 嵌套对象
+const obj = {
+    nested: {
+        key: value
+    },
+    other: value
+};
+
+// 对象作为函数参数
+function foo({
+    key1,
+    key2
+}) {
+    // ...
+}
+```
+
+**验证技巧**：
+```javascript
+// 1. 数括号对数
+{ → 需要一个 }
+每增加一个 { 就需要对应一个 }
+
+// 2. 使用编辑器的括号高亮
+点击 { 应该高亮显示对应的 }
+
+// 3. 使用自动格式化
+Prettier、ESLint 可以自动检测和修复
+```
+
+---
+
+### 4. 大型对象修改的安全方法
+
+**场景**：添加新属性到包含50+条目的对象
+
+**危险做法**：
+```javascript
+// 1. 直接在末尾追加
+const PROMPT_PRESETS = {
+    existing1: {...},
+    existing2: {...},
+    // ... 50+ items ...
+    newItem: {...}  // ← 容易搞错闭合括号
+}
+};  // ❌ 可能多加了括号
+```
+
+**安全做法**：
+```javascript
+// 方法1：在中间插入（推荐）
+const PROMPT_PRESETS = {
+    existing1: {...},
+    newItem: {...},  // ← 在中间插入，不影响结构
+    existing2: {...},
+    // ... 其他 ...
+};
+
+// 方法2：使用对象展开
+const PROMPT_PRESETS = {
+    ...existingPresets,
+    newItem: {...}
+};
+
+// 方法3：分步验证
+const PROMPT_PRESETS = {
+    existing1: {...},
+    existing2: {...}
+};  // ✅ 先验证语法
+
+// 然后再添加
+const PROMPT_PRESETS = {
+    existing1: {...},
+    existing2: {...},
+    newItem: {...}  // ← 最后添加
+};  // ✅ 再次验证
+```
+
+**最佳实践**：
+- ✅ 修改前：备份原文件
+- ✅ 修改中：小步提交，每步验证
+- ✅ 修改后：立即运行 `node -c` 验证
+- ✅ 部署前：在测试环境验证功能
+
+---
+
+### 5. CEP 插件的缓存问题
+
+**问题**：修改代码后，Photoshop 仍然使用旧代码
+
+**原因**：
+- CEP 会缓存 HTML、CSS、JavaScript 文件
+- 即使重新安装插件，缓存可能不会清除
+- 导致新代码不生效
+
+**解决方案**：
+
+**方案1：强制刷新（最快）**
+```
+在 Photoshop 中：
+1. 打开扩展
+2. 按 Ctrl+R（Windows）或 Cmd+R（Mac）
+3. 扩展会重新加载
+```
+
+**方案2：清除缓存**
+```powershell
+# 关闭 Photoshop
+# 删除缓存文件夹
+Remove-Item "$env:LOCALAPPDATA\Temp\cep_cache" -Recurse -Force
+Remove-Item "$env:LOCALAPPDATA\Temp\Adobe\CEPServiceManager*" -Recurse -Force
+
+# 重新安装插件
+powershell -ExecutionPolicy Bypass -File install.ps1
+
+# 重启 Photoshop
+```
+
+**方案3：开发者工具检查**
+```
+1. 在扩展中按 F12 打开开发者工具
+2. 查看 Console 是否有错误
+3. 查看 Network 标签，确认文件加载
+4. 确认文件版本和时间戳
+```
+
+**预防措施**：
+- ✅ 测试时总是先按 Ctrl+R 刷新
+- ✅ 修改 CSS/JS 后立即刷新验证
+- ✅ 部署前清除所有缓存
+- ✅ 在 `.debug` 文件中设置开发模式
+
+---
+
+### 6. 并发 Promise 处理的注意事项
+
+**正确的并发模式**：
+```javascript
+// ✅ 正确：使用 Promise.all
+const promises = [];
+for (let i = 0; i < count; i++) {
+    promises.push(
+        (async () => {
+            try {
+                const result = await doSomething(i);
+                return { success: true, data: result };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        })()
+    );
+}
+const results = await Promise.all(promises);
+
+// ✅ 处理部分失败
+const successes = results.filter(r => r.success);
+const failures = results.filter(r => !r.success);
+```
+
+**错误模式**：
+```javascript
+// ❌ 错误1：串行执行
+for (let i = 0; i < count; i++) {
+    await doSomething(i);  // 等待每个完成
+}
+
+// ❌ 错误2：没有错误处理
+const promises = [];
+for (let i = 0; i < count; i++) {
+    promises.push(doSomething(i));  // 如果一个失败，全部失败
+}
+await Promise.all(promises);
+
+// ❌ 错误3：丢失结果
+for (let i = 0; i < count; i++) {
+    doSomething(i);  // 不等待，丢失结果
+}
+```
+
+**教训**：
+- ✅ 并发要用 `Promise.all()`
+- ✅ 每个 Promise 内部要 try-catch
+- ✅ 返回统一的成功/失败格式
+- ✅ 处理部分失败的情况
+
+---
+
+### 7. JSX 函数调用的错误处理
+
+**问题**：JSX 函数可能失败，但不应该影响整体流程
+
+**正确模式**：
+```javascript
+// ✅ 正确：可选的增强功能
+let groupName = null;
+if (imageCount > 1) {
+    try {
+        await callJSX('createLayerGroup', groupName);
+        console.log('Created group:', groupName);
+    } catch (error) {
+        console.warn('Failed to create group:', error);
+        groupName = null;  // 失败时禁用分组
+    }
+}
+
+// 继续执行，即使分组失败
+for (let i = 0; i < imageCount; i++) {
+    const result = await generateImage();
+    
+    if (groupName) {
+        try {
+            await callJSX('moveLayerToGroup', layerName, groupName);
+        } catch (error) {
+            console.warn('Failed to move to group:', error);
+            // 不影响图片生成
+        }
+    }
+}
+```
+
+**错误模式**：
+```javascript
+// ❌ 错误：不处理失败
+await callJSX('createLayerGroup', groupName);  // 如果失败，整个流程中断
+
+// ❌ 错误：过度依赖增强功能
+const group = await callJSX('createLayerGroup', groupName);
+await callJSX('moveLayerToGroup', layerName, group.name);  // 如果 group 是 null？
+```
+
+**教训**：
+- ✅ 核心功能（生成图片）不能失败
+- ✅ 增强功能（分组、重命名）可以失败
+- ✅ 失败时要降级处理，不影响核心流程
+- ✅ 用 console.warn 记录非致命错误
+
+---
+
+### 8. 用户体验的关键原则
+
+**按钮状态管理**：
+```javascript
+// ✅ 正确：只禁用操作按钮
+const btn = document.getElementById('generateBtn');
+try {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    // ... 执行操作 ...
+} finally {
+    btn.disabled = false;  // 确保总是恢复
+    btn.style.opacity = '1';
+}
+
+// ❌ 错误：禁用整个UI
+showLoading();  // 禁用所有交互，用户无法切换标签
+```
+
+**进度提示**：
+```javascript
+// ✅ 正确：具体的进度信息
+showLoading(`图片 ${i + 1}/${total} - 提交中...`);
+showLoading(`图片 ${i + 1}/${total} - 等待结果...`);
+showLoading(`图片 ${i + 1}/${total} - 导入中...`);
+
+// ❌ 错误：模糊的提示
+showLoading('处理中...');  // 用户不知道进度
+```
+
+**结果反馈**：
+```javascript
+// ✅ 正确：详细的统计
+if (failures === 0) {
+    showSuccess(`成功生成 ${successes} 张图片！`);
+} else if (successes > 0) {
+    showError(`生成完成：${successes} 成功，${failures} 失败`);
+} else {
+    showError('所有图片生成失败');
+}
+
+// ❌ 错误：模糊的结果
+showSuccess('完成');  // 用户不知道结果如何
+```
+
+---
+
+### 9. 文档和注释的重要性
+
+**代码注释**：
+```javascript
+// ✅ 好的注释：解释为什么
+// 创建图层组（如果批量生成）
+// 单张生成不需要分组，避免过度嵌套
+if (imageCount > 1) {
+    // ...
+}
+
+// ❌ 坏的注释：重复代码
+// 如果图片数量大于1
+if (imageCount > 1) {
+    // ...
+}
+```
+
+**错误文档**：
+```javascript
+// ✅ 记录已知问题和解决方案
+/**
+ * [已废弃 v1.8.1] Download image using Socket
+ * 
+ * 此函数已不再使用，因为：
+ * 1. ❌ Socket对HTTPS支持不可靠（20%成功率）
+ * 2. ✅ 现在由JavaScript端使用Node.js的https模块下载
+ */
+```
+
+**版本文档**：
+```markdown
+✅ 每个版本都要有：
+- 功能说明
+- 使用示例
+- 注意事项
+- 测试清单
+- 已知问题
+```
+
+---
+
+## 📋 开发检查清单
+
+### 修改代码时
+
+- [ ] 备份原文件
+- [ ] 小步修改，频繁验证
+- [ ] 注意括号配对
+- [ ] 修改后立即运行 `node -c filename.js`
+- [ ] 检查编辑器的错误提示
+- [ ] 使用 Git 查看差异
+
+### 提交代码前
+
+- [ ] 运行语法检查（所有 JS 文件）
+- [ ] 在本地测试环境验证功能
+- [ ] 检查开发者工具的 Console
+- [ ] 确认没有新的 linter 错误
+- [ ] 更新版本号
+- [ ] 更新 CHANGELOG.md
+
+### 部署给用户前
+
+- [ ] 清除 CEP 缓存
+- [ ] 重新安装插件
+- [ ] 在干净的环境测试
+- [ ] 验证核心功能正常
+- [ ] 验证增强功能正常
+- [ ] 创建安装成功文档
+- [ ] 提供回退方案
+
+### 调试问题时
+
+- [ ] 打开开发者工具（F12）
+- [ ] 查看 Console 的错误信息
+- [ ] 检查 Network 的文件加载
+- [ ] 尝试 Ctrl+R 强制刷新
+- [ ] 清除缓存重试
+- [ ] 检查文件权限和路径
+- [ ] 查看 JSX 的返回结果
+
+---
+
+## 🛠️ 推荐工具
+
+### 语法检查
+```bash
+# JavaScript 语法检查
+node -c filename.js
+
+# ESLint（如果配置）
+eslint filename.js
+
+# Prettier（格式化）
+prettier --write filename.js
+```
+
+### 开发环境
+- **VSCode**：括号高亮、自动补全
+- **ESLint**：实时语法检查
+- **Prettier**：自动格式化
+- **Git**：版本控制和差异对比
+- **Chrome DevTools**：调试 CEP 扩展
+
+### 测试脚本
+```powershell
+# 完整测试流程
+.\test.ps1
+
+# 语法检查所有 JS 文件
+Get-ChildItem -Path . -Filter *.js -Recurse | ForEach-Object {
+    Write-Host "Checking: $($_.FullName)"
+    node -c $_.FullName
+}
+```
+
+---
+
+## 🎯 核心原则
+
+1. **安全第一**
+   - 核心功能不能因增强功能失败而中断
+   - 增强功能失败时要降级处理
+   - 总是有备用方案
+
+2. **用户体验**
+   - 提供清晰的进度提示
+   - 详细的错误信息
+   - 不要禁用不必要的 UI
+
+3. **代码质量**
+   - 修改后立即验证语法
+   - 使用工具自动检查
+   - 小步提交，频繁测试
+
+4. **文档完整**
+   - 记录每个错误和解决方案
+   - 每个版本都有详细文档
+   - 提供使用示例和测试清单
+
+5. **错误处理**
+   - 每个异步操作都要 try-catch
+   - 部分失败不影响整体
+   - 记录错误但不中断流程
+
+---
+
+## 📚 参考资料
+
+- Adobe CEP 开发文档
+- ExtendScript 语法参考
+- JavaScript 最佳实践
+- Promise 并发模式
+- 用户体验设计原则
+
+---
+
+**记住：每次犯错都是学习的机会。记录下来，避免重复犯错！** 🎓

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano Banana AI - Icon Generator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #6366f1;
+        }
+        .icons-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .icon-preview {
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+        }
+        .icon-preview h2 {
+            margin-top: 0;
+            color: #a5b4fc;
+            font-size: 18px;
+        }
+        canvas {
+            border: 2px solid #444;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        canvas:hover {
+            transform: scale(1.02);
+        }
+        .size-info {
+            margin-top: 10px;
+            color: #888;
+            font-size: 14px;
+        }
+        .download-btn {
+            margin-top: 20px;
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+        .instructions {
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        .instructions h3 {
+            color: #6366f1;
+            margin-top: 0;
+        }
+        .instructions ol {
+            line-height: 1.8;
+        }
+        .instructions code {
+            background: #1a1a1a;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #8b5cf6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍌 Nano Banana AI - Icon Generator</h1>
+        
+        <div class="icons-grid">
+            <div class="icon-preview">
+                <h2>📱 Light Theme Icon</h2>
+                <canvas id="iconLight" width="512" height="512"></canvas>
+                <div class="size-info">512x512 px</div>
+                <button class="download-btn" onclick="downloadIcon('iconLight', 'icon.png')">
+                    ⬇️ Download icon.png
+                </button>
+            </div>
+            
+            <div class="icon-preview">
+                <h2>🌙 Dark Theme Icon</h2>
+                <canvas id="iconDark" width="512" height="512"></canvas>
+                <div class="size-info">512x512 px</div>
+                <button class="download-btn" onclick="downloadIcon('iconDark', 'icon-dark.png')">
+                    ⬇️ Download icon-dark.png
+                </button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 使用说明</h3>
+            <ol>
+                <li>点击上方的 <code>Download</code> 按钮下载图标</li>
+                <li>将下载的图标文件复制到 <code>icons/</code> 文件夹</li>
+                <li>替换原有的 <code>icon.png</code> 和 <code>icon-dark.png</code></li>
+                <li>重新运行 <code>INSTALL.ps1</code> 安装插件</li>
+                <li>重启 Photoshop 查看新图标</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // 绘制亮色主题图标
+        function drawLightIcon() {
+            const canvas = document.getElementById('iconLight');
+            const ctx = canvas.getContext('2d');
+            const size = 512;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, size, size);
+            
+            // 渐变背景
+            const bgGradient = ctx.createLinearGradient(0, 0, size, size);
+            bgGradient.addColorStop(0, '#6366f1');
+            bgGradient.addColorStop(0.5, '#8b5cf6');
+            bgGradient.addColorStop(1, '#a855f7');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // 添加光泽效果
+            const gloss = ctx.createRadialGradient(size * 0.3, size * 0.3, 0, size * 0.3, size * 0.3, size * 0.8);
+            gloss.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+            gloss.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gloss;
+            ctx.fillRect(0, 0, size, size);
+            
+            // 绘制香蕉主体
+            ctx.save();
+            ctx.translate(size / 2, size / 2);
+            
+            // 香蕉外形
+            ctx.beginPath();
+            ctx.moveTo(-80, -120);
+            
+            // 创建弯曲的香蕉形状
+            ctx.bezierCurveTo(-100, -80, -110, 0, -100, 80);
+            ctx.bezierCurveTo(-95, 120, -60, 140, -20, 130);
+            ctx.bezierCurveTo(20, 125, 50, 100, 60, 60);
+            ctx.bezierCurveTo(70, 20, 70, -40, 50, -80);
+            ctx.bezierCurveTo(30, -110, 0, -125, -40, -120);
+            ctx.closePath();
+            
+            // 香蕉填充渐变
+            const bananaGradient = ctx.createLinearGradient(-100, -120, 60, 130);
+            bananaGradient.addColorStop(0, '#fff4d4');
+            bananaGradient.addColorStop(0.5, '#ffe66d');
+            bananaGradient.addColorStop(1, '#ffd93d');
+            ctx.fillStyle = bananaGradient;
+            ctx.fill();
+            
+            // 香蕉阴影
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetX = 5;
+            ctx.shadowOffsetY = 5;
+            ctx.fill();
+            ctx.shadowColor = 'transparent';
+            
+            // 香蕉轮廓
+            ctx.strokeStyle = '#e5b800';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // 香蕉纹理线条
+            ctx.strokeStyle = 'rgba(229, 184, 0, 0.3)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(-70 + i * 20, -100);
+                ctx.bezierCurveTo(-90 + i * 20, -60, -100 + i * 20, 20, -80 + i * 20, 100);
+                ctx.stroke();
+            }
+            
+            // AI 火花效果
+            const sparkles = [
+                { x: -120, y: -80, size: 20 },
+                { x: 80, y: -60, size: 25 },
+                { x: -90, y: 100, size: 18 },
+                { x: 70, y: 80, size: 22 }
+            ];
+            
+            sparkles.forEach(spark => {
+                drawSparkle(ctx, spark.x, spark.y, spark.size, '#ffffff');
+            });
+            
+            ctx.restore();
+            
+            // 添加 "AI" 文字
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 10;
+            ctx.fillText('AI', size / 2, size / 2 + 10);
+            ctx.shadowColor = 'transparent';
+        }
+        
+        // 绘制暗色主题图标
+        function drawDarkIcon() {
+            const canvas = document.getElementById('iconDark');
+            const ctx = canvas.getContext('2d');
+            const size = 512;
+            
+            // 清空画布
+            ctx.clearRect(0, 0, size, size);
+            
+            // 深色渐变背景
+            const bgGradient = ctx.createLinearGradient(0, 0, size, size);
+            bgGradient.addColorStop(0, '#1a1a2e');
+            bgGradient.addColorStop(0.5, '#16213e');
+            bgGradient.addColorStop(1, '#0f3460');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // 添加光泽效果
+            const gloss = ctx.createRadialGradient(size * 0.3, size * 0.3, 0, size * 0.3, size * 0.3, size * 0.8);
+            gloss.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+            gloss.addColorStop(1, 'rgba(99, 102, 241, 0)');
+            ctx.fillStyle = gloss;
+            ctx.fillRect(0, 0, size, size);
+            
+            // 绘制香蕉主体
+            ctx.save();
+            ctx.translate(size / 2, size / 2);
+            
+            // 香蕉外形（霓虹发光效果）
+            ctx.beginPath();
+            ctx.moveTo(-80, -120);
+            ctx.bezierCurveTo(-100, -80, -110, 0, -100, 80);
+            ctx.bezierCurveTo(-95, 120, -60, 140, -20, 130);
+            ctx.bezierCurveTo(20, 125, 50, 100, 60, 60);
+            ctx.bezierCurveTo(70, 20, 70, -40, 50, -80);
+            ctx.bezierCurveTo(30, -110, 0, -125, -40, -120);
+            ctx.closePath();
+            
+            // 多层发光效果
+            for (let i = 0; i < 3; i++) {
+                ctx.shadowColor = '#ffd93d';
+                ctx.shadowBlur = 30 + i * 10;
+                ctx.strokeStyle = `rgba(255, 217, 61, ${0.8 - i * 0.2})`;
+                ctx.lineWidth = 8 - i * 2;
+                ctx.stroke();
+            }
+            
+            // 香蕉填充渐变
+            const bananaGradient = ctx.createLinearGradient(-100, -120, 60, 130);
+            bananaGradient.addColorStop(0, '#ffe66d');
+            bananaGradient.addColorStop(0.5, '#ffd93d');
+            bananaGradient.addColorStop(1, '#ffb700');
+            ctx.fillStyle = bananaGradient;
+            ctx.shadowColor = 'transparent';
+            ctx.fill();
+            
+            // 内部高光
+            const highlight = ctx.createLinearGradient(-60, -100, -20, -40);
+            highlight.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+            highlight.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = highlight;
+            ctx.fill();
+            
+            // AI 火花效果（更明亮）
+            const sparkles = [
+                { x: -120, y: -80, size: 20 },
+                { x: 80, y: -60, size: 25 },
+                { x: -90, y: 100, size: 18 },
+                { x: 70, y: 80, size: 22 }
+            ];
+            
+            sparkles.forEach(spark => {
+                drawSparkle(ctx, spark.x, spark.y, spark.size, '#6366f1', true);
+            });
+            
+            ctx.restore();
+            
+            // 添加 "AI" 文字（霓虹效果）
+            ctx.shadowColor = '#6366f1';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('AI', size / 2, size / 2 + 10);
+            
+            // 重复绘制增强发光
+            ctx.shadowBlur = 40;
+            ctx.fillText('AI', size / 2, size / 2 + 10);
+            ctx.shadowColor = 'transparent';
+        }
+        
+        // 绘制星星/火花
+        function drawSparkle(ctx, x, y, size, color, glow = false) {
+            ctx.save();
+            ctx.translate(x, y);
+            
+            if (glow) {
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 15;
+            }
+            
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            
+            // 绘制四芒星
+            ctx.beginPath();
+            for (let i = 0; i < 4; i++) {
+                const angle = (Math.PI / 2) * i;
+                const x1 = Math.cos(angle) * size;
+                const y1 = Math.sin(angle) * size;
+                const x2 = Math.cos(angle + Math.PI / 4) * (size * 0.3);
+                const y2 = Math.sin(angle + Math.PI / 4) * (size * 0.3);
+                
+                if (i === 0) {
+                    ctx.moveTo(x1, y1);
+                } else {
+                    ctx.lineTo(x1, y1);
+                }
+                ctx.lineTo(x2, y2);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // 中心圆点
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // 下载图标
+        function downloadIcon(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // 页面加载时生成图标
+        window.onload = function() {
+            drawLightIcon();
+            drawDarkIcon();
+        };
+    </script>
+</body>
+</html>
