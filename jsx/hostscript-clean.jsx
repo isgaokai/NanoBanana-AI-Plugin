@@ -232,6 +232,66 @@ function exportImageToFile(mode) {
     }
 }
 
+// ========== Import Image Function ==========
+function importImageFromURL(localFilePath) {
+    var originalDialogs = app.displayDialogs;
+    app.displayDialogs = DialogModes.NO;
+    
+    try {
+        if (!app.documents.length) {
+            app.displayDialogs = originalDialogs;
+            return '{"error":"No document open"}';
+        }
+        
+        // 检查文件是否存在
+        var file = new File(localFilePath);
+        if (!file.exists) {
+            app.displayDialogs = originalDialogs;
+            return '{"error":"File not found: ' + localFilePath + '"}';
+        }
+        
+        var doc = app.activeDocument;
+        
+        // 打开图片文件
+        var importedDoc = app.open(file);
+        
+        if (!importedDoc) {
+            app.displayDialogs = originalDialogs;
+            return '{"error":"Failed to open image file"}';
+        }
+        
+        // 选择所有图层并复制
+        importedDoc.selection.selectAll();
+        importedDoc.selection.copy();
+        
+        var importedWidth = Math.round(parseFloat(importedDoc.width.as("px")));
+        var importedHeight = Math.round(parseFloat(importedDoc.height.as("px")));
+        
+        // 关闭导入的文档
+        importedDoc.close(SaveOptions.DONOTSAVECHANGES);
+        
+        // 粘贴到当前文档
+        doc.paste();
+        
+        var newLayer = doc.activeLayer;
+        var layerName = "Nano Banana AI - " + new Date().toLocaleString();
+        
+        try {
+            newLayer.name = layerName;
+        } catch (e) {
+            // 图层命名失败不影响主流程
+        }
+        
+        app.displayDialogs = originalDialogs;
+        
+        return '{"success":true,"layerName":"' + String(layerName).replace(/"/g, '\\"') + '","width":' + importedWidth + ',"height":' + importedHeight + '}';
+        
+    } catch (e) {
+        app.displayDialogs = originalDialogs;
+        return '{"error":"' + String(e).replace(/"/g, '') + '"}';
+    }
+}
+
 // ========== Move Layer to Index ==========
 function moveLayerToIndex(targetIndex) {
     try {
@@ -286,4 +346,6 @@ $.global.deselectAll = deselectAll;
 $.global.resetColors = resetColors;
 $.global.getDocumentInfo = getDocumentInfo;
 $.global.exportImageToFile = exportImageToFile;
+$.global.importImageFromURL = importImageFromURL;
+$.global.moveLayerToIndex = moveLayerToIndex;
 $.global.testJSXLoaded = testJSXLoaded;
