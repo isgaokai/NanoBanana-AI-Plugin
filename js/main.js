@@ -1031,6 +1031,8 @@
             'tools.zoom': 'Zoom',
             'tools.zoomIn': 'Zoom In',
             'tools.zoomOut': 'Zoom Out',
+            'tools.pen': 'Pen',
+            'tools.resetColors': 'Reset Colors',
             'edit.preview': 'Selection Preview',
             'edit.preset': 'Select Preset',
             'preview.select': 'Confirm Selection',
@@ -1095,6 +1097,8 @@
             'tools.zoom': '缩放',
             'tools.zoomIn': '放大',
             'tools.zoomOut': '缩小',
+            'tools.pen': '钢笔',
+            'tools.resetColors': '黑白',
             'edit.preview': '选区预览',
             'edit.preset': '选择预设',
             'preview.select': '确认所选区域',
@@ -1227,68 +1231,106 @@
         updateTranslations();
         updateStatus(t('status.ready'), 'success');
         
-        // Manually load hostscript.jsx (ScriptPath is unreliable on some CEP versions)
-        const jsxPath = csInterface.getSystemPath('extension') + '/jsx/hostscript.jsx';
-        console.log('📂 JSX Path:', jsxPath);
-        console.log('📂 window.cep available:', typeof window.cep !== 'undefined');
-        console.log('📂 window.cep.fs available:', typeof window.cep !== 'undefined' && !!window.cep.fs);
-        
-        // Use inline JSX for maximum compatibility (works on all CEP/PS versions)
-        console.log('🔧 Loading essential JSX functions inline...');
-        
-        // Build inline JSX as single-line to avoid template literal issues
-        const inlineJSX = 
-            'function testJSXLoaded() { return \'{"success":true,"message":"Essential JSX loaded"}\'; }' +
-            'function selectTool(toolName) {' +
-            '  try {' +
-            '    var toolID;' +
-            '    if (toolName === "rectangularMarquee") toolID = stringIDToTypeID("marqueeRectTool");' +
-            '    else if (toolName === "ellipticalMarquee") toolID = stringIDToTypeID("marqueeEllipTool");' +
-            '    else if (toolName === "lasso") toolID = stringIDToTypeID("lassoTool");' +
-            '    else if (toolName === "polygonalLasso") toolID = stringIDToTypeID("polySelTool");' +
-            '    else if (toolName === "magneticLasso") toolID = stringIDToTypeID("magneticLassoTool");' +
-            '    else if (toolName === "quickSelection") toolID = stringIDToTypeID("quickSelectTool");' +
-            '    else if (toolName === "magicWand") toolID = stringIDToTypeID("magicWandTool");' +
-            '    else if (toolName === "brush") toolID = stringIDToTypeID("paintbrushTool");' +
-            '    else if (toolName === "eraser") toolID = stringIDToTypeID("eraserTool");' +
-            '    else if (toolName === "move") toolID = stringIDToTypeID("moveTool");' +
-            '    else if (toolName === "hand") toolID = stringIDToTypeID("handTool");' +
-            '    else if (toolName === "zoom" || toolName === "zoomIn" || toolName === "zoomOut") toolID = stringIDToTypeID("zoomTool");' +
-            '    else return \'{"error":"Unknown tool"}\';' +
-            '    var desc = new ActionDescriptor();' +
-            '    var ref = new ActionReference();' +
-            '    ref.putClass(toolID);' +
-            '    desc.putReference(charIDToTypeID("null"), ref);' +
-            '    executeAction(charIDToTypeID("slct"), desc, DialogModes.NO);' +
-            '    return \'{"success":true,"tool":"\' + toolName + \'"}\';' +
-            '  } catch (e) {' +
-            '    return \'{"error":"\' + String(e.message || e).replace(/"/g, "") + \'"}\';' +
-            '  }' +
-            '}' +
-            'if (typeof $ !== "undefined" && $.global) { $.global.testJSXLoaded = testJSXLoaded; $.global.selectTool = selectTool; }' +
-            '\'{"inline_load_complete":true}\'';
-        
-        csInterface.evalScript(inlineJSX, (loadResult) => {
-            console.log('🔧 Inline JSX eval callback, result:', loadResult);
+        // Test basic JSX execution first
+        console.log('📂 Testing basic JSX execution...');
+        csInterface.evalScript('"test"', (testResult) => {
+            console.log('📂 Basic test result:', testResult);
+            console.log('📂 Result type:', typeof testResult);
+            console.log('📂 Result === "test":', testResult === 'test');
+            console.log('📂 Result === "EvalScript error.":', testResult === 'EvalScript error.');
             
-            if (!loadResult || /evalscript error/i.test(String(loadResult))) {
-                console.error('❌ Failed to load inline JSX:', loadResult);
+            if (testResult === 'EvalScript error.') {
+                console.error('❌ ExtendScript engine is not responding!');
+                console.error('❌ Most common cause: 🔴 No document open in Photoshop');
+                console.error('💡 Solution: Press Ctrl+N to create a new document, then refresh (Ctrl+R)');
+                console.error('\nOther possible causes:');
+                console.error('  • ExtendScript disabled in Photoshop preferences');
+                console.error('  • CEP/Photoshop communication broken (restart PS)');
+                
+                updateStatus('⚠️ Please create or open a document in Photoshop', 'warning');
+                
+                const errorMsg = config.language === 'zh' 
+                    ? '⚠️ 请先在 Photoshop 中打开或创建文档 (Ctrl+N)，然后刷新插件 (Ctrl+R)'
+                    : '⚠️ Please create or open a document in Photoshop (Ctrl+N), then refresh this panel (Ctrl+R)';
+                
+                logDebug('warning', 'ExtendScript', errorMsg);
                 return;
             }
             
-            console.log('✅ Essential JSX functions loaded');
-            
-            // Test JSX environment after loading
-            setTimeout(async () => {
-                try {
-                    const testResult = await callJSX('testJSXLoaded');
-                    console.log('✅ JSX Environment Test:', testResult);
-                    logDebug('success', 'JSX Environment', testResult);
-                } catch (error) {
-                    console.error('❌ JSX Test Failed:', error);
-                    logDebug('error', 'JSX Test', error.message);
-                }
-            }, 500);
+            if (testResult === 'test') {
+                console.log('✅ Basic JSX execution works');
+                
+                // Now try to define functions inline
+                const inlineJSX = `
+                    function testJSXLoaded() { return '{"success":true}'; }
+                    function getDocumentInfo() {
+                        try {
+                            if (!app.documents || app.documents.length === 0) return '{"error":"No doc"}';
+                            var doc = app.activeDocument;
+                            var hasSelection = false;
+                            try { var b = doc.selection.bounds; hasSelection = (b && b.length >= 4); } catch(e) {}
+                            return '{"name":"' + doc.name + '","width":' + doc.width.as('px') + ',"hasSelection":' + hasSelection + '}';
+                        } catch(e) { return '{"error":"' + String(e).replace(/"/g, '') + '"}'; }
+                    }
+                    function selectTool(n) {
+                        try {
+                            var t;
+                            if(n==="rectangularMarquee") t=stringIDToTypeID("marqueeRectTool");
+                            else if(n==="ellipticalMarquee") t=stringIDToTypeID("marqueeEllipTool");
+                            else if(n==="lasso") t=stringIDToTypeID("lassoTool");
+                            else if(n==="polygonalLasso") t=stringIDToTypeID("polySelTool");
+                            else if(n==="magneticLasso") t=stringIDToTypeID("magneticLassoTool");
+                            else if(n==="quickSelection") t=stringIDToTypeID("quickSelectTool");
+                            else if(n==="magicWand") t=stringIDToTypeID("magicWandTool");
+                            else if(n==="brush") t=stringIDToTypeID("paintbrushTool");
+                            else if(n==="eraser") t=stringIDToTypeID("eraserTool");
+                            else if(n==="move") t=stringIDToTypeID("moveTool");
+                            else if(n==="hand") t=stringIDToTypeID("handTool");
+                            else if(n==="zoom"||n==="zoomIn"||n==="zoomOut") t=stringIDToTypeID("zoomTool");
+                            else if(n==="pen") t=stringIDToTypeID("penTool");
+                            else return '{"error":"Unknown"}';
+                            var d=new ActionDescriptor(),r=new ActionReference();
+                            r.putClass(t);d.putReference(charIDToTypeID("null"),r);
+                            executeAction(charIDToTypeID("slct"),d,DialogModes.NO);
+                            return '{"success":true}';
+                        } catch(e) { return '{"error":"' + String(e).replace(/"/g,'') + '"}'; }
+                    }
+                    function deselectAll() {
+                        try { app.activeDocument.selection.deselect(); return '{"success":true}'; }
+                        catch(e) { return '{"error":"' + String(e).replace(/"/g,'') + '"}'; }
+                    }
+                    function resetColors() {
+                        try { app.foregroundColor.rgb.hexValue="000000"; app.backgroundColor.rgb.hexValue="FFFFFF"; return '{"success":true}'; }
+                        catch(e) { return '{"error":"' + String(e).replace(/"/g,'') + '"}'; }
+                    }
+                    "INLINE_LOADED";
+                `;
+                
+                console.log('📂 Loading inline JSX functions...');
+                csInterface.evalScript(inlineJSX, (inlineResult) => {
+                    console.log('📂 Inline JSX Result:', inlineResult);
+                    
+                    if (inlineResult === 'INLINE_LOADED') {
+                        console.log('✅ Inline JSX loaded successfully');
+                        
+                        setTimeout(async () => {
+                            try {
+                                const testResult = await callJSX('testJSXLoaded');
+                                console.log('✅ JSX Function Test:', testResult);
+                                logDebug('success', 'JSX Ready', testResult);
+                            } catch (error) {
+                                console.error('❌ JSX Function Test Failed:', error);
+                            }
+                        }, 500);
+                    } else {
+                        console.error('❌ Inline JSX load failed:', inlineResult);
+                        showError('JSX initialization failed');
+                    }
+                });
+            } else {
+                console.error('❌ Basic JSX execution failed');
+                showError('JSX engine not available');
+            }
         });
     }
 
@@ -1865,6 +1907,72 @@
         }
     };
     
+    // Comprehensive ExtendScript diagnostic
+    window.diagnoseExtendScript = function() {
+        console.log('\n' + '='.repeat(60));
+        console.log('🔧 ExtendScript 诊断工具');
+        console.log('='.repeat(60) + '\n');
+        
+        updateStatus('正在诊断 ExtendScript...', 'info');
+        
+        // Test 1: Direct evalScript with simple expression
+        console.log('📝 Test 1: 最简单测试 ("test")');
+        csInterface.evalScript('"test"', (result) => {
+            console.log('   结果:', result);
+            console.log('   类型:', typeof result);
+            console.log('   是否等于 "test":', result === 'test');
+            console.log('   是否等于 "EvalScript error.":', result === 'EvalScript error.');
+            
+            if (result === 'test') {
+                console.log('   ✅ ExtendScript 响应正常！\n');
+                
+                // Test 2: Arithmetic
+                console.log('📝 Test 2: 算术运算 (1+1)');
+                csInterface.evalScript('1+1', (result) => {
+                    console.log('   结果:', result, result === '2' ? '✅' : '❌');
+                    
+                    // Test 3: typeof app
+                    console.log('\n📝 Test 3: 检查 app 对象');
+                    csInterface.evalScript('typeof app', (result) => {
+                        console.log('   typeof app:', result, result === 'object' ? '✅' : '❌');
+                        
+                        // Test 4: Document count
+                        console.log('\n📝 Test 4: 文档数量');
+                        csInterface.evalScript('app.documents.length', (result) => {
+                            console.log('   文档数量:', result);
+                            
+                            // Test 5: App name
+                            console.log('\n📝 Test 5: 应用名称');
+                            csInterface.evalScript('app.name', (result) => {
+                                console.log('   应用:', result);
+                                
+                                console.log('\n' + '='.repeat(60));
+                                console.log('✅ 所有测试通过！ExtendScript 工作正常');
+                                console.log('='.repeat(60) + '\n');
+                                
+                                updateStatus('ExtendScript 工作正常', 'success');
+                            });
+                        });
+                    });
+                });
+            } else {
+                console.error('\n❌ ExtendScript 未响应或被禁用');
+                console.error('\n可能原因：');
+                console.error('  1. Photoshop 首选项中禁用了脚本执行');
+                console.error('  2. 需要重启 Photoshop');
+                console.error('  3. CEP 与 Photoshop 通信断开');
+                console.error('\n解决方案：');
+                console.error('  1. Edit → Preferences → Scripting & Expressions');
+                console.error('  2. 勾选 "Enable Remote Connections"');
+                console.error('  3. 完全退出并重启 Photoshop');
+                
+                console.log('\n' + '='.repeat(60) + '\n');
+                
+                updateStatus('ExtendScript 未响应，请检查设置', 'error');
+            }
+        });
+    };
+    
     // Select Photoshop tool
     window.selectPSTool = async function(toolName) {
         try {
@@ -1905,7 +2013,7 @@
     // Deselect all (Ctrl+D equivalent)
     window.deselectAll = async function() {
         try {
-            const result = await callJSX('eval', 'app.activeDocument.selection.deselect();');
+            const result = await callJSX('deselectAll');
             
             logDebug('success', 'Selection Cleared', {});
             console.log('选区已取消');
@@ -1918,6 +2026,23 @@
         } catch (error) {
             console.error('Deselect failed:', error);
             logDebug('error', 'Deselect Failed', { error: error.message });
+        }
+    };
+    
+    // Reset foreground/background colors to black/white (D key equivalent)
+    window.resetColors = async function() {
+        try {
+            const result = await callJSX('resetColors');
+            
+            if (result.success) {
+                logDebug('success', 'Colors Reset', {});
+                console.log('前景/背景色已恢复为黑/白');
+            } else {
+                throw new Error(result.error || 'Failed to reset colors');
+            }
+        } catch (error) {
+            console.error('Reset colors failed:', error);
+            logDebug('error', 'Reset Colors Failed', { error: error.message });
         }
     };
     
@@ -1936,7 +2061,8 @@
             'hand': 'hand',
             'zoom': 'zoom',
             'zoomIn': 'zoomIn',
-            'zoomOut': 'zoomOut'
+            'zoomOut': 'zoomOut',
+            'pen': 'pen'
         };
         return mapping[toolName] || toolName;
     }
@@ -2096,23 +2222,19 @@
     function callJSX(functionName, ...args) {
         return new Promise((resolve, reject) => {
             const argsStr = args.map(arg => JSON.stringify(arg)).join(',');
-            // selectTool & testJSXLoaded: prefer $.global (registered in hostscript.jsx); fall back to top-level
-            const needsGlobalFallback = ['selectTool', 'testJSXLoaded'].includes(functionName);
-            const script = needsGlobalFallback
-                ? `(function(){ try { if (typeof $ !== "undefined" && $ && $.global && $.global.${functionName}) return $.global.${functionName}(${argsStr}); } catch (e1) {} return ${functionName}(${argsStr}); })()`
-                : `${functionName}(${argsStr})`;
+            const script = `${functionName}(${argsStr})`;
             
             logDebug('info', `Calling JSX: ${functionName}`, { args: args });
             
             csInterface.evalScript(script, (result) => {
-                const raw = result == null ? '' : String(result).trim();
-                const isEvalScriptFailure = !raw || /^evalscript error/i.test(raw);
-                if (isEvalScriptFailure) {
+                // Check for ExtendScript error
+                if (!result || result === 'EvalScript error' || result === 'EvalScript error.') {
                     logDebug('error', 'JSX Execution Failed', { function: functionName, result: result });
                     reject(new Error(`JSX execution failed for ${functionName}`));
                     return;
                 }
                 
+                // Try to parse as JSON
                 try {
                     const parsed = JSON.parse(result);
                     if (parsed.error) {
@@ -2123,7 +2245,7 @@
                         resolve(parsed);
                     }
                 } catch (e) {
-                    // Not JSON
+                    // Not JSON - return as-is for simple values
                     if (result.startsWith('ERROR:')) {
                         logDebug('error', 'JSX Error String', result);
                         reject(new Error(result));
@@ -4195,9 +4317,12 @@
 
     // ========== Start ==========
     document.addEventListener('DOMContentLoaded', () => {
-        init();
-        loadCustomPresets();
-        loadHistory();
+        // Delay init to allow ExtendScript engine to fully initialize
+        setTimeout(() => {
+            init();
+            loadCustomPresets();
+            loadHistory();
+        }, 500);
     });
 
 })();
