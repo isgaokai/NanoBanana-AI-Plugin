@@ -3576,10 +3576,10 @@
                 imageSize: imageSize
             };
             
-            // 添加参考图（如果有）
+            // 🔧 添加参考图到 urls 数组（如果有）
             if (generateReferenceImage) {
-                requestBody.referenceImage = generateReferenceImage;
-                logDebug('info', 'Reference Image', 'Added to generation request');
+                requestBody.urls = [generateReferenceImage];
+                logDebug('info', 'Reference Image', 'Added to urls array in generation request');
             }
 
             // 创建图层组（所有生成操作）
@@ -3890,13 +3890,13 @@
                 prompt: prompt,
                 aspectRatio: "auto",  // 编辑模式使用auto保持原图比例
                 imageSize: imageSize,
-                urls: [base64Data]
+                urls: [base64Data]  // 要编辑的图片
             };
             
-            // 添加参考图（如果有）
+            // 🔧 添加参考图到 urls 数组（如果有）
             if (editReferenceImage) {
-                requestBody.referenceImage = editReferenceImage;
-                logDebug('info', 'Reference Image', 'Added to edit request (with selection)');
+                requestBody.urls.push(editReferenceImage);  // 参考图追加到 urls 数组
+                logDebug('info', 'Reference Image', 'Added to urls array in edit request');
             }
 
             // 创建图层组（所有编辑操作）
@@ -5158,8 +5158,18 @@
         async processGenerateTask(task) {
             console.log(`🚀 调用生成 API: /v1/draw/nano-banana`);
             
+            // 🔧 构建请求体，将 referenceImage 放入 urls 数组
+            const requestBody = { ...task.params };
+            
+            // 如果有 referenceImage，移动到 urls 数组
+            if (requestBody.referenceImage) {
+                requestBody.urls = [requestBody.referenceImage];
+                delete requestBody.referenceImage;
+                console.log('📎 已将 referenceImage 移动到 urls 数组');
+            }
+            
             // Call Nano Banana API (disable loading overlay for queue mode)
-            const submitResult = await callNanoBananaAPI(task.params, false);
+            const submitResult = await callNanoBananaAPI(requestBody, false);
             
             // Extract task ID
             const taskId = submitResult.taskId || submitResult.data?.id || submitResult.id || submitResult.task_id;
@@ -5253,12 +5263,13 @@
                 prompt: task.params.prompt,
                 aspectRatio: 'auto',  // 编辑模式使用 auto 保持原图比例
                 imageSize: task.params.imageSize || '2K',
-                urls: [imageBase64]  // 要编辑的图片（数组格式）
+                urls: [imageBase64]  // 要编辑的图片
             };
             
-            // 添加额外参考图（如果有）
+            // 🔧 添加额外参考图到 urls 数组（如果有）
             if (task.params.referenceImage) {
-                requestBody.referenceImage = task.params.referenceImage;
+                requestBody.urls.push(task.params.referenceImage);  // 参考图追加到 urls 数组
+                console.log('📎 已添加参考图到 urls 数组');
             }
             
             console.log(`🚀 调用编辑 API: /v1/draw/nano-banana`);
