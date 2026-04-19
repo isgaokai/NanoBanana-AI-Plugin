@@ -1180,7 +1180,23 @@
             'message.enterPrompt': 'Please enter a prompt',
             'message.enterInstructions': 'Please enter edit instructions',
             'message.generationComplete': 'Image generated successfully!',
-            'message.editComplete': 'Image edited successfully!'
+            'message.editComplete': 'Image edited successfully!',
+            'queue.title': 'Task Queue',
+            'queue.clearCompleted': 'Clear Completed',
+            'queue.pauseAll': 'Pause All',
+            'queue.resumeAll': 'Resume All',
+            'queue.empty': 'No tasks',
+            'queue.status.pending': 'Waiting',
+            'queue.status.processing': 'Processing',
+            'queue.status.completed': 'Completed',
+            'queue.status.failed': 'Failed',
+            'edit.alignMode': 'Align Mode',
+            'align.none': 'No Align',
+            'align.standard': 'Standard',
+            'align.full': '1:1 Align',
+            'align.desc.none': 'Original size, no adjustment',
+            'align.desc.standard': 'Extend to standard ratio (1:1, 4:3, 16:9), auto-crop after generation',
+            'align.desc.full': 'Extend to 1:1 square, auto-crop after generation (more pixel loss)'
         },
         zh: {
             'app.title': 'Nano Banana AI',
@@ -1254,7 +1270,23 @@
             'message.enterPrompt': '请输入提示词',
             'message.enterInstructions': '请输入编辑指令',
             'message.generationComplete': '图像生成成功！',
-            'message.editComplete': '图像编辑成功！'
+            'message.editComplete': '图像编辑成功！',
+            'queue.title': '任务队列',
+            'queue.clearCompleted': '清除已完成',
+            'queue.pauseAll': '暂停所有',
+            'queue.resumeAll': '恢复所有',
+            'queue.empty': '暂无任务',
+            'queue.status.pending': '等待中',
+            'queue.status.processing': '处理中',
+            'queue.status.completed': '已完成',
+            'queue.status.failed': '失败',
+            'edit.alignMode': '对齐模式',
+            'align.none': '不对齐',
+            'align.standard': '标准对齐',
+            'align.full': '1:1对齐',
+            'align.desc.none': '原始尺寸，不做调整',
+            'align.desc.standard': '扩展到标准比例 (1:1, 4:3, 16:9)，生成后自动裁切回原比例',
+            'align.desc.full': '扩展到 1:1 正方形，生成后自动裁切回原比例（像素损失较多）'
         }
     };
 
@@ -3152,7 +3184,7 @@
                 taskQueue.addTask('generate', taskParams);
             }
             
-            showStatus(
+            updateStatus(
                 config.language === 'zh' ? 
                     `已添加 ${imageCount} 个生成任务到队列` : 
                     `Added ${imageCount} generation task(s) to queue`,
@@ -3377,7 +3409,7 @@
                 taskQueue.addTask('edit', taskParams);
             }
             
-            showStatus(
+            updateStatus(
                 config.language === 'zh' ? 
                     `已添加 ${imageCount} 个编辑任务到队列` : 
                     `Added ${imageCount} edit task(s) to queue`,
@@ -4632,9 +4664,9 @@
             item.innerHTML = `
                 <img src="${task.thumbnail || 'icons/placeholder.png'}" alt="Task ${taskIndex}" />
                 <div class="task-progress" style="width: 0%"></div>
-                <div class="task-type-badge ${task.type}">${task.type === 'generate' ? '生成' : '编辑'}</div>
+                <div class="task-type-badge ${task.type}">${task.type === 'generate' ? t('tabs.generate') : t('tabs.edit')}</div>
                 <div class="task-number">${taskIndex}</div>
-                <div class="task-status ${task.status}">等待中</div>
+                <div class="task-status ${task.status}">${t('queue.status.pending')}</div>
             `;
             
             // Click to view details
@@ -4674,13 +4706,11 @@
         }
         
         getStatusText(task) {
-            const map = {
-                'pending': '等待中',
-                'processing': `${task.progress}%`,
-                'completed': '完成',
-                'failed': '失败'
-            };
-            return map[task.status] || task.status;
+            const statusKey = `queue.status.${task.status}`;
+            if (task.status === 'processing') {
+                return `${task.progress}%`;
+            }
+            return t(statusKey) || task.status;
         }
         
         async processNext() {
@@ -4925,10 +4955,10 @@
             completedTasks.forEach(t => this.removeTask(t.id));
             
             if (count > 0) {
-                showStatus(`已清除 ${count} 个已完成任务`, 'success');
+                updateStatus(`已清除 ${count} 个已完成任务`, 'success');
                 console.log(`🗑️ 清除了 ${count} 个已完成任务`);
             } else {
-                showStatus('没有已完成的任务', 'info');
+                updateStatus('没有已完成的任务', 'info');
             }
         }
         
@@ -4936,10 +4966,10 @@
             this.paused = !this.paused;
             
             if (this.paused) {
-                showStatus('队列已暂停', 'info');
+                updateStatus('队列已暂停', 'info');
                 console.log('⏸️ 队列已暂停');
             } else {
-                showStatus('队列已恢复', 'success');
+                updateStatus('队列已恢复', 'success');
                 console.log('▶️ 队列已恢复');
                 this.processNext();
             }
@@ -4971,7 +5001,7 @@
                         <circle cx="8.5" cy="8.5" r="1.5"></circle>
                         <polyline points="21 15 16 10 5 21"></polyline>
                     </svg>
-                    <span>暂无任务</span>
+                    <span data-i18n="queue.empty">${t('queue.empty')}</span>
                 </div>
             `;
         }
@@ -5047,14 +5077,14 @@ ${task.error ? `错误: ${task.error}` : ''}
         
         const btn = document.getElementById('pauseTasksBtn');
         if (taskQueue.paused) {
-            btn.title = '恢复所有任务';
+            btn.title = t('queue.resumeAll');
             btn.innerHTML = `
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
             `;
         } else {
-            btn.title = '暂停所有任务';
+            btn.title = t('queue.pauseAll');
             btn.innerHTML = `
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="6" y="4" width="4" height="16"></rect>
@@ -5083,12 +5113,8 @@ ${task.error ? `错误: ${task.error}` : ''}
         // Update description
         const descEl = document.getElementById('alignModeDesc');
         if (descEl) {
-            const descriptions = {
-                'none': '原始尺寸，不做调整',
-                'standard': '扩展到标准比例 (1:1, 4:3, 16:9)，生成后自动裁切回原比例',
-                'full': '扩展到 1:1 正方形，生成后自动裁切回原比例（像素损失较多）'
-            };
-            descEl.textContent = descriptions[mode] || '';
+            const descKey = `align.desc.${mode}`;
+            descEl.textContent = t(descKey) || '';
         }
         
         console.log(`✅ 对齐模式已设置: ${mode}`);
