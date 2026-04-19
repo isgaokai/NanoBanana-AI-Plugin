@@ -147,6 +147,37 @@
                 </div>
                 <div id="historyGrid" class="history-grid"></div>
             </div>
+            
+            <!-- Task Queue Section -->
+            <div class="task-queue-section" style="margin-top: 16px;">
+                <div class="task-queue-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="margin: 0;">
+                        <span data-i18n="queue.title">任务队列 / Task Queue</span>
+                        <span id="taskQueueCount" style="margin-left: 8px; font-size: 11px; color: #787878;">(0)</span>
+                    </label>
+                    <div class="task-queue-toolbar" style="display: flex; gap: 4px;">
+                        <button class="btn-icon" onclick="clearCompletedTasks()" title="清除已完成">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-icon" onclick="pauseAllTasks()" title="暂停所有任务" id="pauseTasksBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="task-queue-wrapper" style="position: relative;">
+                    <div id="taskQueueContainer" class="task-queue-container">
+                        <div id="taskQueue" class="task-queue-list"></div>
+                    </div>
+                    <div class="task-queue-resize-handle" id="taskQueueResizeHandle"></div>
+                </div>
+            </div>
         </div>
 
         <!-- PS Tools (Common for both Generate & Edit) -->
@@ -896,6 +927,37 @@
                         <option value="4">4 张（并发）</option>
                         <option value="5">5 张（并发）</option>
                     </select>
+                </div>
+                
+                <!-- 🆕 对齐模式选择 -->
+                <div class="form-group">
+                    <label>
+                        <span data-i18n="edit.alignMode">对齐模式 / Align Mode</span>
+                        <span class="tooltip-icon" title="调整图像尺寸以符合 AI 要求">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                        </span>
+                    </label>
+                    <div class="button-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+                        <button class="align-mode-btn active" data-mode="none" onclick="setAlignMode('none')" 
+                                title="保持原图尺寸，不做调整">
+                            <span>不对齐</span>
+                        </button>
+                        <button class="align-mode-btn" data-mode="standard" onclick="setAlignMode('standard')" 
+                                title="扩展到最近标准比例 (1:1, 4:3, 16:9) 并填充黑色">
+                            <span>标准对齐</span>
+                        </button>
+                        <button class="align-mode-btn" data-mode="full" onclick="setAlignMode('full')" 
+                                title="扩展到 1:1 正方形并填充黑色（像素损失较多）">
+                            <span>1:1对齐</span>
+                        </button>
+                    </div>
+                    <div class="desc" style="font-size: 11px; color: #888; margin-top: 4px;">
+                        <span id="alignModeDesc">原始尺寸，不做调整</span>
+                    </div>
                 </div>
 
                 <button class="btn-primary" id="editBtn" onclick="editImage()">

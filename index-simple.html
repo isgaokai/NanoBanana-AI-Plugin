@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Nano Banana AI</title>
+<script src="js/libs/CSInterface.js"></script>
+<style>
+body{font-family:sans-serif;padding:20px;background:#1a1a1a;color:#fff;margin:0;}
+button{padding:10px 15px;margin:5px;background:#6366f1;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;}
+button:hover{background:#4f46e5;}
+.log{background:#252525;padding:10px;margin:10px 0;border-radius:4px;font-family:monospace;font-size:12px;max-height:400px;overflow-y:auto;}
+h2{color:#c084fc;margin-top:0;}
+.tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:10px 0;}
+</style>
+</head><body>
+<h2>🧪 Nano Banana AI (Simple Mode)</h2>
+<div class="tool-grid">
+<button onclick="selectTool('rectangularMarquee')">矩形</button>
+<button onclick="selectTool('ellipticalMarquee')">椭圆</button>
+<button onclick="selectTool('lasso')">套索</button>
+<button onclick="selectTool('polygonalLasso')">多边形</button>
+<button onclick="selectTool('quickSelection')">快选</button>
+<button onclick="selectTool('magicWand')">魔棒</button>
+<button onclick="selectTool('brush')">画笔</button>
+<button onclick="selectTool('eraser')">橡皮</button>
+<button onclick="selectTool('move')">移动</button>
+</div>
+<button onclick="testBasic()">测试基础通信</button>
+<button onclick="clearLog()">清空日志</button>
+<div class="log" id="log"></div>
+<script>
+const cs = new CSInterface();
+const log = document.getElementById('log');
+let functionsLoaded = false;
+
+function p(msg) { log.textContent += msg + '\n'; log.scrollTop = log.scrollHeight; console.log(msg); }
+function clearLog() { log.textContent = ''; }
+
+// Test basic communication
+function testBasic() {
+    clearLog();
+    p('🔍 Testing: "hello"');
+    cs.evalScript('"hello"', r => {
+        p('Result: ' + r);
+        if (r === 'hello') {
+            p('✅ ExtendScript works!');
+            loadFunctions();
+        } else {
+            p('❌ ExtendScript error: ' + r);
+        }
+    });
+}
+
+// Load tool functions
+function loadFunctions() {
+    if (functionsLoaded) { p('✅ Functions already loaded'); return; }
+    p('\n🔧 Loading tool functions...');
+    
+    const code = 
+        'function selectTool(n){try{var t;' +
+        'if(n=="rectangularMarquee")t=stringIDToTypeID("marqueeRectTool");' +
+        'else if(n=="ellipticalMarquee")t=stringIDToTypeID("marqueeEllipTool");' +
+        'else if(n=="lasso")t=stringIDToTypeID("lassoTool");' +
+        'else if(n=="polygonalLasso")t=stringIDToTypeID("polySelTool");' +
+        'else if(n=="magneticLasso")t=stringIDToTypeID("magneticLassoTool");' +
+        'else if(n=="quickSelection")t=stringIDToTypeID("quickSelectTool");' +
+        'else if(n=="magicWand")t=stringIDToTypeID("magicWandTool");' +
+        'else if(n=="brush")t=stringIDToTypeID("paintbrushTool");' +
+        'else if(n=="eraser")t=stringIDToTypeID("eraserTool");' +
+        'else if(n=="move")t=stringIDToTypeID("moveTool");' +
+        'else if(n=="hand")t=stringIDToTypeID("handTool");' +
+        'else return"ERROR";' +
+        'var d=new ActionDescriptor(),r=new ActionReference();' +
+        'r.putClass(t);d.putReference(charIDToTypeID("null"),r);' +
+        'executeAction(charIDToTypeID("slct"),d,DialogModes.NO);' +
+        'return"OK"}catch(e){return"ERROR:"+e}}'  +
+        '"LOADED"';
+    
+    cs.evalScript(code, r => {
+        if (r === 'LOADED') {
+            functionsLoaded = true;
+            p('✅ Functions loaded successfully');
+        } else {
+            p('❌ Load failed: ' + r);
+        }
+    });
+}
+
+// Select tool
+function selectTool(name) {
+    if (!functionsLoaded) { p('⚠️  Loading functions first...'); loadFunctions(); setTimeout(() => selectTool(name), 500); return; }
+    p('🔧 Selecting: ' + name);
+    cs.evalScript('selectTool("' + name + '")', r => {
+        if (r === 'OK') {
+            p('✅ Tool selected: ' + name);
+        } else {
+            p('❌ Failed: ' + r);
+        }
+    });
+}
+
+// Auto-load on start
+setTimeout(testBasic, 500);
+</script>
+</body></html>

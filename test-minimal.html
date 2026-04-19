@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Minimal Test</title>
+<script src="js/libs/CSInterface.js"></script>
+<style>body{font-family:monospace;padding:20px;background:#1a1a1a;color:#0f0;}</style>
+</head><body>
+<h2>🧪 Minimal ExtendScript Test</h2>
+<button onclick="test1()">Test 1: "hello"</button>
+<button onclick="test2()">Test 2: 1+1</button>
+<button onclick="test3()">Test 3: typeof app</button>
+<button onclick="test4()">Test 4: Simple Tool</button>
+<pre id="log"></pre>
+<script>
+const cs = new CSInterface();
+const log = document.getElementById('log');
+function p(msg) { log.textContent += msg + '\n'; console.log(msg); }
+
+function test1() {
+    log.textContent = '';
+    p('🔍 Test 1: Evaluating "hello"...');
+    cs.evalScript('"hello"', r => p('✅ Result: ' + r + ' (type: ' + typeof r + ')'));
+}
+
+function test2() {
+    log.textContent = '';
+    p('🔍 Test 2: Evaluating 1+1...');
+    cs.evalScript('1+1', r => p('✅ Result: ' + r));
+}
+
+function test3() {
+    log.textContent = '';
+    p('🔍 Test 3: Checking app object...');
+    cs.evalScript('typeof app', r => {
+        p('✅ typeof app: ' + r);
+        if (r === 'object') {
+            cs.evalScript('app.name', r2 => p('✅ app.name: ' + r2));
+        }
+    });
+}
+
+function test4() {
+    log.textContent = '';
+    p('🔍 Test 4: Selecting move tool...');
+    const code = 'try{var d=new ActionDescriptor();var r=new ActionReference();r.putClass(stringIDToTypeID("moveTool"));d.putReference(charIDToTypeID("null"),r);executeAction(charIDToTypeID("slct"),d,DialogModes.NO);"OK"}catch(e){String(e)}';
+    cs.evalScript(code, r => p('✅ Result: ' + r));
+}
+</script>
+</body></html>

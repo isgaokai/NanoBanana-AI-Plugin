@@ -212,49 +212,126 @@
         depthMap: {
             name: '深度图',
             category: '辅助工具',
-            prompt: `生成深度图/depth map，将图像转换为灰度深度图，近处物体为白色，远处物体为黑色，精确表现物体的空间距离关系，用于3D重建和视觉效果。`,
+            prompt: `请生成这张图像的深度图（Depth Map）。
+
+要求：
+1. 将图像转换为灰度深度图，使用灰度值精确表示物体的空间距离
+2. 近处的物体显示为白色或浅灰色（灰度值 200-255）
+3. 远处的物体显示为黑色或深灰色（灰度值 0-80）
+4. 中间距离的物体使用中间灰度值（灰度值 81-199）
+5. 保持物体边缘清晰锐利，准确表现场景的空间深度层次
+6. 确保深度图与原图的结构完全对应，不能有变形
+7. 输出纯灰度图像，不含任何颜色信息
+
+用途：3D 重建、景深模拟、视觉效果制作。`,
             size: '2K'
         },
         
         normalMap: {
             name: '法向贴图',
             category: '辅助工具',
-            prompt: `生成法向贴图/normal map，将图像表面法线信息转换为RGB颜色，用于3D建模和材质贴图，保留物体表面细节和凹凸信息。`,
+            prompt: `请生成这张图像的法向贴图（Normal Map）。
+
+要求：
+1. 将物体表面的法线方向信息转换为 RGB 颜色编码
+2. 红色通道（R）表示 X 轴方向（左红右青）
+3. 绿色通道（G）表示 Y 轴方向（上绿下紫）
+4. 蓝色通道（B）表示 Z 轴方向（朝向相机为蓝色）
+5. 保留物体表面的所有凹凸细节和纹理信息
+6. 平面区域应该显示为偏蓝紫色（法线朝向相机）
+7. 边缘和转折处颜色应该有明显变化
+
+用途：3D 建模、PBR 材质、游戏贴图制作。`,
             size: '2K'
         },
         
         lineArt: {
             name: '线稿',
             category: '辅助工具',
-            prompt: `生成线稿/line art，提取图像的轮廓和边缘线条，转换为黑白线条图，保留主要结构和细节，适合绘画参考和二次创作。`,
+            prompt: `请生成这张图像的线稿（Line Art / Linework）。
+
+要求：
+1. 提取图像的主要轮廓线和重要边缘线条
+2. 转换为黑白线条图，使用白色背景 + 黑色线条
+3. 线条应该清晰、连续、流畅，粗细适中且有层次感
+4. 保留重要结构细节：面部特征、服装轮廓、道具边缘、手部细节
+5. 去除背景噪点和不重要的小细节
+6. 主要轮廓线可以稍粗（1.5-2px），细节线可以稍细（0.8-1px）
+7. 线条连接处应该自然过渡，不能有断裂
+
+用途：绘画参考、漫画制作、二次创作、动画线稿。`,
             size: '2K'
         },
         
         flatColor: {
             name: '色稿',
             category: '辅助工具',
-            prompt: `生成色稿/flat color，将图像转换为平涂色块，去除光影和渐变，保留主要色彩区域，适合动画和插画制作。`,
+            prompt: `请生成这张图像的色稿（Flat Color / Color Blocking）。
+
+要求：
+1. 将图像转换为平涂色块，每个区域使用单一纯色填充
+2. 完全去除光影、高光、阴影、渐变等明暗变化
+3. 保留主要的色彩区域划分和边界
+4. 不同物体和不同颜色的区域应该有清晰的分界线
+5. 每个色块应该是均匀的纯色，不含任何纹理和细节
+6. 保持原图的色彩倾向和主要配色方案
+7. 边缘应该清晰锐利，不能有模糊
+
+用途：动画制作、插画分层、配色参考、赛璐璐风格。`,
             size: '2K'
         },
         
         whiteModel: {
             name: '白模',
             category: '辅助工具',
-            prompt: `生成白模/white model，将图像转换为纯白色3D模型效果，保留物体的形状和结构，去除所有颜色和纹理，适合结构分析和3D参考。`,
+            prompt: `请生成这张图像的白模效果（White Model / Clay Render）。
+
+要求：
+1. 将图像转换为纯白色 3D 模型渲染效果
+2. 保留物体的形状、结构、轮廓和体积感
+3. 去除所有颜色、纹理、图案等表面细节
+4. 保持光影和明暗关系，体现物体的立体感
+5. 表面应该像白色陶土或石膏一样，具有柔和的漫反射效果
+6. 保留重要的结构细节如褶皱、凸起、凹陷
+7. 背景可以是中性灰或白色
+
+用途：结构分析、3D 建模参考、雕塑研究。`,
             size: '2K'
         },
         
         neutralGray: {
             name: '中性灰',
             category: '辅助工具',
-            prompt: `生成中性灰辅助层/neutral gray，创建50%灰度的光影分析图，用于观察和调整图像的明暗关系，是修图的重要辅助工具。`,
+            prompt: `请生成这张图像的中性灰辅助层（Neutral Gray / 50% Gray）。
+
+要求：
+1. 创建 50% 灰度（RGB 128,128,128）的光影分析图
+2. 将图像的明暗信息转换为灰度，去除所有色彩信息
+3. 高光区域显示为浅灰色，阴影区域显示为深灰色
+4. 中间调应该接近 50% 灰（128 灰度值）
+5. 保留完整的光影过渡和层次关系
+6. 不改变图像的明暗对比度和光影结构
+7. 用于观察和修正图像的光影分布
+
+用途：修图辅助、光影分析、明暗调整、双曲线调色法。`,
             size: '2K'
         },
         
         idChannel: {
             name: 'ID通道',
             category: '辅助工具',
-            prompt: `生成ID通道/ID channel，将图像中不同物体用不同颜色标记，每个物体有唯一的纯色标识，用于后期合成和精确选择。`,
+            prompt: `请生成这张图像的 ID 通道（ID Channel / Mask ID）。
+
+要求：
+1. 将图像中的不同物体用不同的纯色进行标记
+2. 每个独立物体或区域应该有唯一的纯色标识（如纯红、纯绿、纯蓝等）
+3. 同一物体的所有部分使用相同颜色
+4. 颜色应该高饱和度、高对比度，易于区分
+5. 边缘应该精确贴合物体轮廓，不能有模糊或渐变
+6. 主要识别：人物、服装、道具、背景等不同元素
+7. 背景使用黑色（RGB 0,0,0）
+
+用途：后期合成、精确选择、分层处理、AE 遮罩。`,
             size: '2K'
         },
         
@@ -3047,10 +3124,44 @@
                 return;
             }
 
+            if (!config.apiKey) {
+                showError(t('message.enterApiKey'));
+                return;
+            }
+
             const model = document.getElementById('generateModel').value;
             const aspectRatio = document.getElementById('aspectRatio').value;
             const imageSize = document.getElementById('imageSize').value;
             const imageCount = parseInt(document.getElementById('generateImageCount').value) || 1;
+            
+            // 🆕 使用任务队列：添加任务（非阻塞）
+            for (let i = 0; i < imageCount; i++) {
+                const taskParams = {
+                    model: model,
+                    prompt: prompt,
+                    aspectRatio: aspectRatio,
+                    imageSize: imageSize,
+                    n: 1 // Each task generates 1 image
+                };
+                
+                // 添加参考图（如果有）
+                if (generateReferenceImage) {
+                    taskParams.referenceImage = generateReferenceImage;
+                }
+                
+                taskQueue.addTask('generate', taskParams);
+            }
+            
+            showStatus(
+                config.language === 'zh' ? 
+                    `已添加 ${imageCount} 个生成任务到队列` : 
+                    `Added ${imageCount} generation task(s) to queue`,
+                'success'
+            );
+            
+            return; // 立即返回，不阻塞
+            
+            // ========== 以下为原阻塞式代码（已弃用）==========
 
             // Disable generate button
             generateBtn.disabled = true;
@@ -3245,9 +3356,37 @@
                 return;
             }
 
+            if (!config.apiKey) {
+                showError(t('message.enterApiKey'));
+                return;
+            }
+
             const model = document.getElementById('editModel').value;
             const imageSize = document.getElementById('editImageSize').value;
             const imageCount = parseInt(document.getElementById('editImageCount').value) || 1;
+            
+            // 🆕 使用任务队列：添加任务（非阻塞）
+            for (let i = 0; i < imageCount; i++) {
+                const taskParams = {
+                    prompt: prompt,
+                    model: model,
+                    imageSize: imageSize,
+                    imageCount: 1 // Each task generates 1 image
+                };
+                
+                taskQueue.addTask('edit', taskParams);
+            }
+            
+            showStatus(
+                config.language === 'zh' ? 
+                    `已添加 ${imageCount} 个编辑任务到队列` : 
+                    `Added ${imageCount} edit task(s) to queue`,
+                'success'
+            );
+            
+            return; // 立即返回，不阻塞
+            
+            // ========== 以下为原阻塞式代码（已弃用）==========
 
             // Disable edit button
             editBtn.disabled = true;
@@ -4432,6 +4571,682 @@
         }
     }
 
+    // ========== Task Queue System ==========
+    class TaskQueue {
+        constructor() {
+            this.tasks = [];
+            this.maxConcurrent = 3;
+            this.processing = 0;
+            this.paused = false;
+            this.container = null;
+            this.taskIdCounter = 0;
+        }
+        
+        init() {
+            this.container = document.getElementById('taskQueue');
+            this.setupResizeHandle();
+            this.renderEmpty();
+            console.log('✅ 任务队列系统初始化完成');
+        }
+        
+        generateTaskId() {
+            return `task_${Date.now()}_${++this.taskIdCounter}`;
+        }
+        
+        addTask(type, params) {
+            const task = {
+                id: this.generateTaskId(),
+                type: type, // 'generate' or 'edit'
+                status: 'pending',
+                progress: 0,
+                params: params,
+                thumbnail: null,
+                result: null,
+                error: null,
+                createTime: Date.now()
+            };
+            
+            this.tasks.push(task);
+            this.renderTask(task);
+            this.updateCount();
+            this.processNext();
+            
+            console.log(`📋 任务已添加: #${this.tasks.length} (${task.type})`);
+            return task.id;
+        }
+        
+        renderTask(task) {
+            if (!this.container) return;
+            
+            // Remove empty state
+            const empty = this.container.querySelector('.task-queue-empty');
+            if (empty) empty.remove();
+            
+            const item = document.createElement('div');
+            item.className = 'task-item';
+            item.dataset.taskId = task.id;
+            item.dataset.status = task.status;
+            
+            const taskIndex = this.tasks.indexOf(task) + 1;
+            
+            item.innerHTML = `
+                <img src="${task.thumbnail || 'icons/placeholder.png'}" alt="Task ${taskIndex}" />
+                <div class="task-progress" style="width: 0%"></div>
+                <div class="task-type-badge ${task.type}">${task.type === 'generate' ? '生成' : '编辑'}</div>
+                <div class="task-number">${taskIndex}</div>
+                <div class="task-status ${task.status}">等待中</div>
+            `;
+            
+            // Click to view details
+            item.addEventListener('click', () => this.showTaskDetails(task.id));
+            
+            this.container.appendChild(item);
+            
+            // Scroll to new task
+            item.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+        }
+        
+        updateTask(taskId, updates) {
+            const task = this.tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            Object.assign(task, updates);
+            
+            const item = this.container.querySelector(`[data-task-id="${taskId}"]`);
+            if (!item) return;
+            
+            if (updates.thumbnail) {
+                const img = item.querySelector('img');
+                img.src = updates.thumbnail;
+            }
+            
+            if (updates.progress !== undefined) {
+                const progressBar = item.querySelector('.task-progress');
+                progressBar.style.width = `${updates.progress}%`;
+            }
+            
+            if (updates.status) {
+                item.dataset.status = updates.status;
+                const statusEl = item.querySelector('.task-status');
+                statusEl.className = `task-status ${updates.status}`;
+                statusEl.textContent = this.getStatusText(task);
+            }
+        }
+        
+        getStatusText(task) {
+            const map = {
+                'pending': '等待中',
+                'processing': `${task.progress}%`,
+                'completed': '完成',
+                'failed': '失败'
+            };
+            return map[task.status] || task.status;
+        }
+        
+        async processNext() {
+            if (this.paused) {
+                console.log('⏸️ 队列已暂停');
+                return;
+            }
+            if (this.processing >= this.maxConcurrent) {
+                console.log(`⏳ 达到并发上限 (${this.processing}/${this.maxConcurrent})`);
+                return;
+            }
+            
+            const pendingTask = this.tasks.find(t => t.status === 'pending');
+            if (!pendingTask) {
+                if (this.processing === 0) {
+                    console.log('✅ 队列处理完成');
+                }
+                return;
+            }
+            
+            this.processing++;
+            pendingTask.status = 'processing';
+            this.updateTask(pendingTask.id, { status: 'processing', progress: 0 });
+            this.updateCount();
+            
+            console.log(`▶️ 开始处理任务: ${pendingTask.id} (${this.processing}/${this.maxConcurrent})`);
+            
+            try {
+                if (pendingTask.type === 'generate') {
+                    await this.processGenerateTask(pendingTask);
+                } else if (pendingTask.type === 'edit') {
+                    await this.processEditTask(pendingTask);
+                }
+                
+                pendingTask.status = 'completed';
+                pendingTask.progress = 100;
+                this.updateTask(pendingTask.id, { 
+                    status: 'completed',
+                    progress: 100
+                });
+                
+                console.log(`✅ 任务完成: ${pendingTask.id}`);
+                
+                // Add to history
+                if (pendingTask.result) {
+                    addToHistory({
+                        url: pendingTask.result,
+                        prompt: pendingTask.params.prompt,
+                        model: pendingTask.params.model || 'unknown',
+                        timestamp: Date.now(),
+                        type: pendingTask.type
+                    });
+                }
+                
+            } catch (error) {
+                pendingTask.status = 'failed';
+                pendingTask.error = error.message;
+                this.updateTask(pendingTask.id, { 
+                    status: 'failed',
+                    progress: 0
+                });
+                console.error(`❌ 任务失败: ${pendingTask.id}`, error);
+            } finally {
+                this.processing--;
+                this.updateCount();
+                this.processNext(); // Process next task
+            }
+        }
+        
+        async processGenerateTask(task) {
+            const apiUrl = `${API_BASE}/v1/images/generations`;
+            
+            console.log(`🚀 调用生成 API: ${apiUrl}`);
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(task.params)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || `API 错误: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            const taskId = data.id;
+            
+            console.log(`📋 轮询任务: ${taskId}`);
+            
+            // Poll result
+            for (let i = 0; i < 100; i++) {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                const pollResponse = await fetch(`${API_BASE}/v1/draw/result`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${config.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: taskId })
+                });
+                
+                const pollData = await pollResponse.json();
+                const actualData = pollData.data?.data || pollData.data || pollData;
+                
+                // Update progress
+                const progress = actualData.progress || Math.min((i + 1) * 2, 95);
+                this.updateTask(task.id, {
+                    progress: progress,
+                    thumbnail: actualData.thumbnail || task.thumbnail
+                });
+                
+                console.log(`⏳ 进度: ${progress}%, 状态: ${actualData.status}`);
+                
+                if (actualData.status === 'succeeded' && actualData.results) {
+                    task.result = actualData.results[0].url;
+                    task.thumbnail = actualData.results[0].url;
+                    console.log(`✅ 生成成功: ${task.result}`);
+                    return;
+                }
+                
+                if (actualData.status === 'failed') {
+                    throw new Error(actualData.failure_reason || 'Task failed');
+                }
+            }
+            
+            throw new Error('Task timeout');
+        }
+        
+        async processEditTask(task) {
+            // Get image data from Photoshop
+            const mode = 'selection';
+            const imageInfo = await callJSX('exportImageToFile', mode);
+            
+            if (!imageInfo || !imageInfo.filePath) {
+                throw new Error('无法导出图像，请确保有选区或图层');
+            }
+            
+            console.log(`📷 图像信息:`, imageInfo);
+            
+            // Read image file and convert to base64
+            const imageBase64 = await readImageFile(imageInfo.filePath);
+            
+            // Upload to API
+            const uploadData = {
+                image: imageBase64,
+                prompt: task.params.prompt,
+                n: task.params.imageCount || 1,
+                size: task.params.imageSize || '1024x1024'
+            };
+            
+            console.log(`🚀 调用编辑 API`);
+            
+            const response = await fetch(`${API_BASE}/v1/images/edits`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(uploadData)
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || `API 错误: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            const taskId = data.id;
+            
+            console.log(`📋 轮询任务: ${taskId}`);
+            
+            // Poll result
+            for (let i = 0; i < 100; i++) {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                const pollResponse = await fetch(`${API_BASE}/v1/draw/result`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${config.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: taskId })
+                });
+                
+                const pollData = await pollResponse.json();
+                const actualData = pollData.data?.data || pollData.data || pollData;
+                
+                // Update progress
+                const progress = actualData.progress || Math.min((i + 1) * 2, 95);
+                this.updateTask(task.id, {
+                    progress: progress,
+                    thumbnail: actualData.thumbnail || task.thumbnail
+                });
+                
+                console.log(`⏳ 进度: ${progress}%, 状态: ${actualData.status}`);
+                
+                if (actualData.status === 'succeeded' && actualData.results) {
+                    task.result = actualData.results[0].url;
+                    task.thumbnail = actualData.results[0].url;
+                    console.log(`✅ 编辑成功: ${task.result}`);
+                    return;
+                }
+                
+                if (actualData.status === 'failed') {
+                    throw new Error(actualData.failure_reason || 'Task failed');
+                }
+            }
+            
+            throw new Error('Task timeout');
+        }
+        
+        removeTask(taskId) {
+            const index = this.tasks.findIndex(t => t.id === taskId);
+            if (index === -1) return;
+            
+            this.tasks.splice(index, 1);
+            
+            const item = this.container.querySelector(`[data-task-id="${taskId}"]`);
+            if (item) {
+                item.style.opacity = '0';
+                setTimeout(() => item.remove(), 300);
+            }
+            
+            this.updateCount();
+            
+            if (this.tasks.length === 0) {
+                setTimeout(() => this.renderEmpty(), 300);
+            }
+            
+            console.log(`🗑️ 任务已删除: ${taskId}`);
+        }
+        
+        clearCompleted() {
+            const completedTasks = this.tasks.filter(t => t.status === 'completed');
+            const count = completedTasks.length;
+            
+            completedTasks.forEach(t => this.removeTask(t.id));
+            
+            if (count > 0) {
+                showStatus(`已清除 ${count} 个已完成任务`, 'success');
+                console.log(`🗑️ 清除了 ${count} 个已完成任务`);
+            } else {
+                showStatus('没有已完成的任务', 'info');
+            }
+        }
+        
+        pauseAll() {
+            this.paused = !this.paused;
+            
+            if (this.paused) {
+                showStatus('队列已暂停', 'info');
+                console.log('⏸️ 队列已暂停');
+            } else {
+                showStatus('队列已恢复', 'success');
+                console.log('▶️ 队列已恢复');
+                this.processNext();
+            }
+        }
+        
+        updateCount() {
+            const counter = document.getElementById('taskQueueCount');
+            if (counter) {
+                const pending = this.tasks.filter(t => t.status === 'pending').length;
+                const processing = this.tasks.filter(t => t.status === 'processing').length;
+                const total = this.tasks.length;
+                
+                let text = `(${total})`;
+                if (processing > 0) {
+                    text = `(${total} | ${processing} 处理中)`;
+                }
+                
+                counter.textContent = text;
+            }
+        }
+        
+        renderEmpty() {
+            if (!this.container) return;
+            
+            this.container.innerHTML = `
+                <div class="task-queue-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span>暂无任务</span>
+                </div>
+            `;
+        }
+        
+        setupResizeHandle() {
+            const handle = document.getElementById('taskQueueResizeHandle');
+            const container = document.getElementById('taskQueueContainer');
+            
+            if (!handle || !container) return;
+            
+            let startY = 0;
+            let startHeight = 0;
+            
+            handle.addEventListener('mousedown', (e) => {
+                startY = e.clientY;
+                startHeight = container.offsetHeight;
+                
+                const onMouseMove = (e) => {
+                    const delta = e.clientY - startY;
+                    const newHeight = Math.max(80, Math.min(400, startHeight + delta));
+                    container.style.height = `${newHeight}px`;
+                };
+                
+                const onMouseUp = () => {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    
+                    // Save preference
+                    localStorage.setItem('taskQueueHeight', container.style.height);
+                };
+                
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+            
+            // Restore saved height
+            const savedHeight = localStorage.getItem('taskQueueHeight');
+            if (savedHeight) {
+                container.style.height = savedHeight;
+            }
+        }
+        
+        showTaskDetails(taskId) {
+            const task = this.tasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            console.log('📋 任务详情:', task);
+            
+            // Show alert with details
+            alert(`任务详情
+
+ID: ${task.id}
+类型: ${task.type === 'generate' ? '生成' : '编辑'}
+状态: ${this.getStatusText(task)}
+进度: ${task.progress}%
+提示词: ${task.params.prompt || '无'}
+${task.error ? `错误: ${task.error}` : ''}
+            `);
+        }
+    }
+
+    // Global task queue instance
+    const taskQueue = new TaskQueue();
+
+    // Clear completed tasks
+    window.clearCompletedTasks = function() {
+        taskQueue.clearCompleted();
+    };
+
+    // Pause/Resume all tasks
+    window.pauseAllTasks = function() {
+        taskQueue.pauseAll();
+        
+        const btn = document.getElementById('pauseTasksBtn');
+        if (taskQueue.paused) {
+            btn.title = '恢复所有任务';
+            btn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+            `;
+        } else {
+            btn.title = '暂停所有任务';
+            btn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+            `;
+        }
+    };
+
+    // ========== Align Mode System ==========
+    let currentAlignMode = 'none'; // 'none', 'standard', 'full'
+
+    window.setAlignMode = function(mode) {
+        currentAlignMode = mode;
+        
+        // Update button states
+        const buttons = document.querySelectorAll('.align-mode-btn');
+        buttons.forEach(btn => {
+            if (btn.dataset.mode === mode) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // Update description
+        const descEl = document.getElementById('alignModeDesc');
+        if (descEl) {
+            const descriptions = {
+                'none': '原始尺寸，不做调整',
+                'standard': '扩展到标准比例 (1:1, 4:3, 16:9)，生成后自动裁切回原比例',
+                'full': '扩展到 1:1 正方形，生成后自动裁切回原比例（像素损失较多）'
+            };
+            descEl.textContent = descriptions[mode] || '';
+        }
+        
+        console.log(`✅ 对齐模式已设置: ${mode}`);
+    };
+
+    /**
+     * Align image to target aspect ratio
+     * @param {string} imageBase64 - Base64 image data
+     * @param {string} mode - Align mode: 'none', 'standard', 'full'
+     * @param {object} originalDimensions - Original image dimensions
+     * @returns {Promise<object>} - {image: base64, metadata: {original, aligned, offset, mode}}
+     */
+    async function alignImage(imageBase64, mode, originalDimensions) {
+        if (mode === 'none') {
+            return {
+                image: imageBase64,
+                metadata: {
+                    original: originalDimensions,
+                    aligned: originalDimensions,
+                    offset: { x: 0, y: 0 },
+                    mode: 'none'
+                }
+            };
+        }
+        
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                let targetWidth, targetHeight;
+                const ratio = img.width / img.height;
+                
+                if (mode === 'standard') {
+                    // Find closest standard ratio
+                    const standardRatios = [
+                        { w: 1, h: 1, ratio: 1.0, name: '1:1' },
+                        { w: 4, h: 3, ratio: 4/3, name: '4:3' },
+                        { w: 16, h: 9, ratio: 16/9, name: '16:9' },
+                        { w: 3, h: 2, ratio: 3/2, name: '3:2' }
+                    ];
+                    
+                    let closest = standardRatios[0];
+                    let minDiff = Math.abs(ratio - 1.0);
+                    
+                    for (const r of standardRatios) {
+                        const diff = Math.abs(ratio - r.ratio);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            closest = r;
+                        }
+                    }
+                    
+                    const targetRatio = closest.ratio;
+                    
+                    if (ratio > targetRatio) {
+                        // Image is wider, extend height
+                        targetWidth = img.width;
+                        targetHeight = Math.round(img.width / targetRatio);
+                    } else {
+                        // Image is taller, extend width
+                        targetHeight = img.height;
+                        targetWidth = Math.round(img.height * targetRatio);
+                    }
+                    
+                    console.log(`📐 标准对齐: ${img.width}x${img.height} → ${targetWidth}x${targetHeight} (${closest.name})`);
+                    
+                } else if (mode === 'full') {
+                    // Force 1:1 square
+                    const maxDim = Math.max(img.width, img.height);
+                    targetWidth = maxDim;
+                    targetHeight = maxDim;
+                    
+                    console.log(`📐 1:1 对齐: ${img.width}x${img.height} → ${targetWidth}x${targetHeight}`);
+                }
+                
+                // Create canvas with target size
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                
+                // Fill with black background
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, targetWidth, targetHeight);
+                
+                // Center the original image
+                const offsetX = Math.floor((targetWidth - img.width) / 2);
+                const offsetY = Math.floor((targetHeight - img.height) / 2);
+                ctx.drawImage(img, offsetX, offsetY);
+                
+                // Return aligned image + metadata
+                const alignedBase64 = canvas.toDataURL('image/png');
+                
+                resolve({
+                    image: alignedBase64,
+                    metadata: {
+                        original: { width: img.width, height: img.height },
+                        aligned: { width: targetWidth, height: targetHeight },
+                        offset: { x: offsetX, y: offsetY },
+                        mode: mode
+                    }
+                });
+            };
+            
+            img.onerror = (error) => {
+                reject(new Error('Failed to load image for alignment'));
+            };
+            
+            img.src = imageBase64;
+        });
+    }
+
+    /**
+     * Crop image back to original size after generation
+     * @param {string} resultImageUrl - Result image URL
+     * @param {object} metadata - Alignment metadata
+     * @returns {Promise<string>} - Cropped image as base64
+     */
+    async function cropToOriginal(resultImageUrl, metadata) {
+        if (!metadata || metadata.mode === 'none') {
+            return resultImageUrl;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous'; // For CORS
+            
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = metadata.original.width;
+                canvas.height = metadata.original.height;
+                
+                // Crop from center (where original was placed)
+                ctx.drawImage(img,
+                    metadata.offset.x, metadata.offset.y,           // Source position
+                    metadata.original.width, metadata.original.height,  // Source size
+                    0, 0,                                           // Target position
+                    metadata.original.width, metadata.original.height   // Target size
+                );
+                
+                const croppedBase64 = canvas.toDataURL('image/png');
+                
+                console.log(`✂️ 裁切回原始尺寸: ${metadata.aligned.width}x${metadata.aligned.height} → ${metadata.original.width}x${metadata.original.height}`);
+                
+                resolve(croppedBase64);
+            };
+            
+            img.onerror = (error) => {
+                console.error('Failed to crop image:', error);
+                resolve(resultImageUrl); // Return original on error
+            };
+            
+            img.src = resultImageUrl;
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         // Delay init to allow ExtendScript engine to fully initialize
         setTimeout(() => {
@@ -4439,6 +5254,7 @@
             loadCustomPresets();
             loadHistory();
             setupCharCounters();
+            taskQueue.init();
         }, 500);
     });
 

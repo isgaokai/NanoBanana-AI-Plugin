@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fix ExtendScript</title>
+    <script src="js/libs/CSInterface.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #1a1a1a; color: #fff; }
+        .log { background: #252525; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; }
+        .success { color: #4ade80; }
+        .error { color: #ef4444; }
+        .warning { color: #fbbf24; }
+        button { padding: 10px 20px; margin: 5px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #4f46e5; }
+    </style>
+</head>
+<body>
+    <h1>🔧 ExtendScript 诊断与修复</h1>
+    <div id="logs"></div>
+    <button onclick="runDiagnostic()">运行诊断</button>
+    <button onclick="tryFix()">尝试修复</button>
+    
+    <script>
+        const csInterface = new CSInterface();
+        const logsDiv = document.getElementById('logs');
+        
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'log ' + type;
+            div.textContent = msg;
+            logsDiv.appendChild(div);
+            console.log(msg);
+        }
+        
+        function runDiagnostic() {
+            logsDiv.innerHTML = '';
+            log('🔍 开始诊断...', 'info');
+            
+            // Test 1: Simple arithmetic
+            log('\n📝 Test 1: 简单运算 (1+1)');
+            csInterface.evalScript('1+1', (result) => {
+                log('   结果: ' + result, result === '2' ? 'success' : 'error');
+                
+                // Test 2: Check app object
+                log('\n📝 Test 2: 检查 app 对象');
+                csInterface.evalScript('typeof app', (result) => {
+                    log('   typeof app: ' + result, result === 'object' ? 'success' : 'error');
+                    
+                    // Test 3: Check document count
+                    log('\n📝 Test 3: 检查文档数量');
+                    csInterface.evalScript('app.documents.length', (result) => {
+                        log('   文档数量: ' + result, parseInt(result) > 0 ? 'success' : 'warning');
+                        
+                        // Test 4: Get app name
+                        log('\n📝 Test 4: 获取应用名称');
+                        csInterface.evalScript('app.name', (result) => {
+                            log('   应用名称: ' + result, result.includes('Photoshop') ? 'success' : 'error');
+                            
+                            log('\n✅ 诊断完成', 'success');
+                        });
+                    });
+                });
+            });
+        }
+        
+        function tryFix() {
+            logsDiv.innerHTML = '';
+            log('🔧 尝试修复 ExtendScript 连接...', 'info');
+            
+            // Try to reinitialize by calling a simple function
+            log('\n📝 Step 1: 测试基础通信');
+            csInterface.evalScript('(function(){ return "alive"; })()', (result) => {
+                if (result === 'alive') {
+                    log('   ✅ ExtendScript 响应正常！', 'success');
+                    
+                    // Now try to define our functions
+                    log('\n📝 Step 2: 注入测试函数');
+                    const inlineCode = 'function testJSXLoaded() { return \'{"success":true}\'; } testJSXLoaded()';
+                    csInterface.evalScript(inlineCode, (result) => {
+                        log('   结果: ' + result, 'info');
+                        try {
+                            const parsed = JSON.parse(result);
+                            if (parsed.success) {
+                                log('   ✅ 函数注入成功！', 'success');
+                                log('\n💡 请刷新主面板 (Ctrl+R) 尝试使用工具', 'success');
+                            }
+                        } catch (e) {
+                            log('   ❌ 解析失败: ' + e.message, 'error');
+                        }
+                    });
+                } else {
+                    log('   ❌ ExtendScript 未响应: ' + result, 'error');
+                    log('\n💡 建议操作:', 'warning');
+                    log('   1. 检查 Photoshop → Edit → Preferences → Scripting & Expressions', 'warning');
+                    log('   2. 确保勾选 "Enable Remote Connections"', 'warning');
+                    log('   3. 重启 Photoshop', 'warning');
+                }
+            });
+        }
+        
+        // Auto-run diagnostic on load
+        setTimeout(runDiagnostic, 500);
+    </script>
+</body>
+</html>

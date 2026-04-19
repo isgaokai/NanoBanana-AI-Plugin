@@ -1,9 +1,9 @@
-﻿// Nano Banana AI - Enhanced Version with Channel Selection Storage
+// Nano Banana AI - Enhanced Version with Channel Selection Storage
 // Export by cropping the original document temporarily
 
 var TEMP_LAYER_NAME = "_NanoBanana_TempMerged_";
 
-// ========== 閫氶亾閫夊尯瀛樺偍绯荤粺 ==========
+// ========== Channel Selection Storage System ==========
 var NANOBANA_SELECTION_CHANNEL = "NanoBanana_Selection";
 
 function saveSelectionToChannel() {
@@ -141,7 +141,7 @@ function hasSelectionChannel() {
     }
 }
 
-// ========== 鏅鸿兘閫夊尯灏哄璋冩暣 ==========
+// [Comment removed - encoding issue]
 function adjustSelectionToMultiple(multiple) {
     try {
         if (!app.activeDocument) {
@@ -275,7 +275,7 @@ function checkSelectionSize(multiple) {
     }
 }
 
-// ========== 鍚戜笂鐩栧嵃鍙鍥惧眰 ==========
+// [Comment removed - encoding issue]
 function stampVisibleLayersUpward() {
     try {
         if (!app.activeDocument) {
@@ -326,7 +326,7 @@ function stampVisibleLayersUpward() {
                     hour12: false
                 }).replace(/\//g, '-');
                 
-                var newLayerName = "鐩栧嵃鍥惧眰 " + timestamp;
+                var newLayerName = " " + timestamp;
                 newLayer.name = newLayerName;
                 
                 debugInfo += "\nSTAMP: New layer created - " + newLayerName;
@@ -354,7 +354,7 @@ function stampVisibleLayersUpward() {
                 doc.paste();
                 
                 var fallbackLayer = doc.activeLayer;
-                var fallbackName = "鐩栧嵃鍥惧眰(鍗曞眰) " + new Date().toLocaleTimeString();
+                var fallbackName = "() " + new Date().toLocaleTimeString();
                 fallbackLayer.name = fallbackName;
                 
                 debugInfo += "\nSTAMP: Fallback method succeeded - " + fallbackName;
@@ -582,12 +582,12 @@ function exportImageToFile(mode) {
         
         var doc = app.activeDocument;
         
-        // ========== 淇濆瓨閫夊尯鍒伴€氶亾 ==========
+// [Comment removed - encoding issue]
         var SELECTION_CHANNEL = "NanoBanana_Selection";
         var selectionSaved = false;
         
         try {
-            // 妫€鏌ユ槸鍚︽湁閫夊尯
+// [Comment removed - encoding issue]
             var hasSelection = false;
             try {
                 var testBounds = doc.selection.bounds;
@@ -599,7 +599,7 @@ function exportImageToFile(mode) {
             }
             
             if (hasSelection) {
-                // 鍒犻櫎鏃х殑閫夊尯閫氶亾锛堝鏋滃瓨鍦級
+// [Comment removed - encoding issue]
                 for (var i = doc.channels.length - 1; i >= 0; i--) {
                     if (doc.channels[i].name === SELECTION_CHANNEL) {
                         doc.channels[i].remove();
@@ -607,18 +607,18 @@ function exportImageToFile(mode) {
                     }
                 }
                 
-                // 鍒涘缓鏂伴€氶亾骞朵繚瀛橀€夊尯
+// [Comment removed - encoding issue]
                 var selChannel = doc.channels.add();
                 selChannel.name = SELECTION_CHANNEL;
                 doc.selection.store(selChannel);
                 
-                // 鍒囨崲鍥濺GB澶嶅悎閫氶亾
+// [Comment removed - encoding issue]
                 doc.activeChannels = [doc.channels[0], doc.channels[1], doc.channels[2]];
                 
                 selectionSaved = true;
             }
         } catch (channelError) {
-            // 閫夊尯淇濆瓨澶辫触涓嶅奖鍝嶄富娴佺▼
+// [Comment removed - encoding issue]
         }
         
         // Get selection bounds
@@ -822,8 +822,8 @@ function exportImageToBase64(mode) {
  * Import image from URL
  */
 /**
- * 瀵煎叆鍥剧墖鍒癙hotoshop - 涓夐噸淇濋殰鏈哄埗
- * 鍊熼壌閲夊厜AI鐨勬渶浣冲疄璺? */
+ * hotoshop - 
+ * AI? */
 function importImageFromURL(imageUrl) {
     var originalDialogs = app.displayDialogs;
     app.displayDialogs = DialogModes.NO;
@@ -837,7 +837,7 @@ function importImageFromURL(imageUrl) {
         var doc = app.activeDocument;
         var debugInfo = "IMPORT_START: " + imageUrl;
         
-        // ========== 浠庨€氶亾鎭㈠閫夊尯 ==========
+// [Comment removed - encoding issue]
         var SELECTION_CHANNEL = "NanoBanana_Selection";
         var hasSelection = false;
         var selectionBounds = null;
@@ -853,7 +853,7 @@ function importImageFromURL(imageUrl) {
             
             if (selChannel) {
                 doc.selection.load(selChannel);
-                // 閲嶈锛氬垏鎹㈠洖RGB澶嶅悎閫氶亾
+// [Comment removed - encoding issue]
                 doc.activeChannels = [doc.channels[0], doc.channels[1], doc.channels[2]];
                 
                 var bounds = doc.selection.bounds;
@@ -880,10 +880,10 @@ function importImageFromURL(imageUrl) {
             debugInfo += "\nSELECTION_LOAD_FAILED: " + channelError.message;
         }
         
-        // ========== 浣跨敤鏈湴鏂囦欢锛圝avaScript宸蹭笅杞斤級 ==========
+// [Comment removed - encoding issue]
         debugInfo += "\nUSING_LOCAL_FILE: " + imageUrl;
         
-        // imageUrl 鐜板湪鏄湰鍦版枃浠惰矾寰勶紝涓嶆槸HTTP URL
+// [Comment removed - encoding issue]
         var tempFile = new File(imageUrl);
         
         if (!tempFile.exists) {
@@ -893,7 +893,7 @@ function importImageFromURL(imageUrl) {
         
         debugInfo += "\nLOCAL_FILE_FOUND: " + tempFile.fsName + " (" + tempFile.length + " bytes)";
         
-        // ========== 鏂规硶1: 鏍囧噯鎵撳紑 ==========
+// [Comment removed - encoding issue]
         var importedDoc = null;
         var openSuccess = false;
         var lastError = "";
@@ -907,14 +907,14 @@ function importImageFromURL(imageUrl) {
             lastError = e1.message;
             debugInfo += "\nMETHOD1_FAILED: " + e1.message;
             
-            // ========== 鏂规硶2: ActionDescriptor寮哄埗RGB ==========
+// [Comment removed - encoding issue]
             try {
                 debugInfo += "\nMETHOD2_TRY: ActionDescriptor with forced RGB";
                 
                 var desc2 = new ActionDescriptor();
                 desc2.putPath(charIDToTypeID("null"), tempFile);
                 
-                // 寮哄埗RGB妯″紡
+// [Comment removed - encoding issue]
                 var openDesc = new ActionDescriptor();
                 openDesc.putEnumerated(charIDToTypeID("Md  "), 
                                       charIDToTypeID("ClrS"), 
@@ -932,7 +932,7 @@ function importImageFromURL(imageUrl) {
                 lastError = e2.message;
                 debugInfo += "\nMETHOD2_FAILED: " + e2.message;
                 
-                // ========== 鏂规硶3: 涓存椂鏂囨。+缃叆 ==========
+// [Comment removed - encoding issue]
                 try {
                     debugInfo += "\nMETHOD3_TRY: Temp document + place";
                     
@@ -945,11 +945,11 @@ function importImageFromURL(imageUrl) {
                                        charIDToTypeID("Qcsa"));
                     executeAction(charIDToTypeID("Plc "), desc3, DialogModes.NO);
                     
-                    // 鏍呮牸鍖栨櫤鑳藉璞?                    try {
+// [Comment removed - encoding issue]
                         executeAction(stringIDToTypeID("rasterizeLayer"), 
                                     new ActionDescriptor(), DialogModes.NO);
                     } catch (rasterError) {
-                        // 蹇界暐鏍呮牸鍖栭敊璇?                    }
+// [Comment removed - encoding issue]
                     
                     importedDoc = tempDoc;
                     openSuccess = true;
@@ -961,7 +961,7 @@ function importImageFromURL(imageUrl) {
             }
         }
         
-        // 鎵€鏈夋柟娉曢兘澶辫触
+// [Comment removed - encoding issue]
         if (!openSuccess) {
             if (tempFile.exists) tempFile.remove();
             app.displayDialogs = originalDialogs;
@@ -969,7 +969,7 @@ function importImageFromURL(imageUrl) {
             return '{"error":"All import methods failed: ' + lastError.replace(/"/g, '\\"') + '","debug":"' + debugInfo.replace(/"/g, '\\"').replace(/\n/g, '\\n') + '"}';
         }
         
-        // ========== 澶嶅埗鍥剧墖鍐呭 ==========
+// [Comment removed - encoding issue]
         debugInfo += "\nCOPYING_CONTENT";
         
         try {
@@ -983,28 +983,28 @@ function importImageFromURL(imageUrl) {
             return '{"error":"Copy failed: ' + copyError.message.replace(/"/g, '\\"') + '"}';
         }
         
-        // 鍏抽棴瀵煎叆鐨勬枃妗?        importedDoc.close(SaveOptions.DONOTSAVECHANGES);
+// [Comment removed - encoding issue]
         debugInfo += "\nIMPORTED_DOC_CLOSED";
         
-        // 鍒囨崲鍥炲師鏂囨。
+// [Comment removed - encoding issue]
         app.activeDocument = doc;
         
-        // ========== 绮樿创鍥剧墖 ==========
+// [Comment removed - encoding issue]
         debugInfo += "\nPASTING_IMAGE";
         
         var pastedLayer;
         try {
-            // 鍙栨秷浠讳綍鐜版湁閫夊尯锛岀‘淇濈矘璐村埌鐢诲竷涓績
+// [Comment removed - encoding issue]
             doc.selection.deselect();
             
             pastedLayer = doc.paste();
             pastedLayer.name = "Nano Banana Result";
             debugInfo += "\nPASTE_SUCCESS";
             
-            // 濡傛灉娌℃湁閫夊尯锛岀‘淇濆浘灞傚眳涓榻?            if (!hasSelection) {
+// [Comment removed - encoding issue]
                 try {
-                    // 浣跨敤Photoshop鐨勮嚜鍔ㄥ榻愬姛鑳斤紝纭繚鍥惧眰绮剧‘灞呬腑
-                    // 閫夋嫨褰撳墠鍥惧眰
+// [Comment removed - encoding issue]
+// [Comment removed - encoding issue]
                     var desc1 = new ActionDescriptor();
                     var ref1 = new ActionReference();
                     ref1.putName(charIDToTypeID('Lyr '), pastedLayer.name);
@@ -1012,7 +1012,7 @@ function importImageFromURL(imageUrl) {
                     desc1.putBoolean(charIDToTypeID('MkVs'), false);
                     executeAction(charIDToTypeID('slct'), desc1, DialogModes.NO);
                     
-                    // 姘村钩灞呬腑瀵归綈
+// [Comment removed - encoding issue]
                     var desc2 = new ActionDescriptor();
                     var ref2 = new ActionReference();
                     ref2.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
@@ -1020,7 +1020,7 @@ function importImageFromURL(imageUrl) {
                     desc2.putEnumerated(charIDToTypeID('Usng'), charIDToTypeID('ADSt'), stringIDToTypeID('ADSCentersH'));
                     executeAction(charIDToTypeID('Algn'), desc2, DialogModes.NO);
                     
-                    // 鍨傜洿灞呬腑瀵归綈
+// [Comment removed - encoding issue]
                     var desc3 = new ActionDescriptor();
                     var ref3 = new ActionReference();
                     ref3.putEnumerated(charIDToTypeID('Lyr '), charIDToTypeID('Ordn'), charIDToTypeID('Trgt'));
@@ -1031,7 +1031,7 @@ function importImageFromURL(imageUrl) {
                     debugInfo += "\nLAYER_CENTERED_TO_CANVAS";
                 } catch (centerError) {
                     debugInfo += "\nCENTER_FAILED:" + centerError.message;
-                    // 灞呬腑澶辫触涓嶅奖鍝嶄富娴佺▼
+// [Comment removed - encoding issue]
                 }
             }
         } catch (pasteError) {
@@ -1040,12 +1040,12 @@ function importImageFromURL(imageUrl) {
             return '{"error":"Paste failed: ' + pasteError.message.replace(/"/g, '\\"') + '"}';
         }
         
-        // ========== 濡傛灉鏈夐€夊尯锛岃皟鏁村浘灞備綅缃拰灏哄 ==========
+// [Comment removed - encoding issue]
         if (hasSelection && selectionBounds) {
             try {
                 debugInfo += "\nALIGNING_TO_SELECTION";
                 
-                // 鎭㈠閫夊尯
+// [Comment removed - encoding issue]
                 var selRegion = [
                     [selectionBounds.left, selectionBounds.top],
                     [selectionBounds.right, selectionBounds.top],
@@ -1054,7 +1054,7 @@ function importImageFromURL(imageUrl) {
                 ];
                 doc.selection.select(selRegion);
                 
-                // 鑾峰彇鍥惧眰褰撳墠灏哄
+// [Comment removed - encoding issue]
                 var layerBounds = pastedLayer.bounds;
                 var layerLeft = parseFloat(layerBounds[0]);
                 var layerTop = parseFloat(layerBounds[1]);
@@ -1063,16 +1063,16 @@ function importImageFromURL(imageUrl) {
                 var layerWidth = layerRight - layerLeft;
                 var layerHeight = layerBottom - layerTop;
                 
-                // 璁＄畻缂╂斁姣斾緥锛堟媺浼稿埌閫夊尯灏哄锛?                var scaleX = selectionBounds.width / layerWidth * 100;
+// [Comment removed - encoding issue]
                 var scaleY = selectionBounds.height / layerHeight * 100;
                 
-                // 闈炵瓑姣斾緥缂╂斁
+// [Comment removed - encoding issue]
                 if (Math.abs(scaleX - 100) > 0.1 || Math.abs(scaleY - 100) > 0.1) {
                     pastedLayer.resize(scaleX, scaleY, AnchorPosition.TOPLEFT);
                     debugInfo += "\nRESIZED: " + scaleX.toFixed(2) + "%, " + scaleY.toFixed(2) + "%";
                 }
                 
-                // 绉诲姩鍒伴€夊尯浣嶇疆
+// [Comment removed - encoding issue]
                 var scaledBounds = pastedLayer.bounds;
                 var scaledLeft = parseFloat(scaledBounds[0]);
                 var scaledTop = parseFloat(scaledBounds[1]);
@@ -1087,17 +1087,17 @@ function importImageFromURL(imageUrl) {
                 debugInfo += "\nALIGNMENT_SUCCESS";
             } catch (alignError) {
                 debugInfo += "\nALIGNMENT_FAILED: " + alignError.message;
-                // 涓嶆槸鑷村懡閿欒锛岀户缁?            }
+// [Comment removed - encoding issue]
         }
         
-        // 鍙栨秷閫夊尯
+// [Comment removed - encoding issue]
         try {
             doc.selection.deselect();
         } catch (e) {
-            // 蹇界暐
+// [Comment removed - encoding issue]
         }
         
-        // ========== 娓呯悊閫夊尯瀛樺偍閫氶亾 ==========
+// [Comment removed - encoding issue]
         try {
             for (var ci = doc.channels.length - 1; ci >= 0; ci--) {
                 if (doc.channels[ci].name === SELECTION_CHANNEL) {
@@ -1110,7 +1110,7 @@ function importImageFromURL(imageUrl) {
             debugInfo += "\nCHANNEL_CLEAN_FAILED: " + cleanError.message;
         }
         
-        // 娓呯悊涓存椂鏂囦欢
+// [Comment removed - encoding issue]
         if (tempFile.exists) {
             tempFile.remove();
             debugInfo += "\nTEMP_FILE_REMOVED";
@@ -1162,23 +1162,23 @@ function importImageFromBase64(base64Data) {
         
         var doc = app.activeDocument;
         
-        // 纭繚 base64Data 鏄瓧绗︿覆
+// [Comment removed - encoding issue]
         var base64String = String(base64Data);
         
-        // 鍒涘缓涓存椂鏂囦欢
+// [Comment removed - encoding issue]
         var tempFile = createTempFile("nanoBanana_import_", ".png");
         if (!tempFile) {
             app.displayDialogs = originalDialogs;
             return '{"error":"Could not create temp file"}';
         }
         
-        // 瑙ｆ瀽 Base64锛堢Щ闄?data:image/...;base64, 鍓嶇紑锛?        var base64Content = base64String;
+// [Comment removed - encoding issue]
         var commaIndex = base64String.indexOf(',');
         if (commaIndex > -1) {
             base64Content = base64String.substring(commaIndex + 1);
         }
         
-        // 浣跨敤浼樺寲鐨?Base64 瑙ｇ爜锛堟暟缁勬柟寮忥紝鎬ц兘鏇村ソ锛?        tempFile.encoding = "BINARY";
+// [Comment removed - encoding issue]
         tempFile.open("w");
         
         var decoded = decodeBase64Fast(base64Content);
@@ -1192,25 +1192,25 @@ function importImageFromBase64(base64Data) {
         tempFile.write(decoded);
         tempFile.close();
         
-        // 楠岃瘉鏂囦欢鏄惁鎴愬姛鍐欏叆
+// [Comment removed - encoding issue]
         if (!tempFile.exists || tempFile.length === 0) {
             if (tempFile.exists) tempFile.remove();
             app.displayDialogs = originalDialogs;
             return '{"error":"Failed to write image file"}';
         }
         
-        // 鎵撳紑涓存椂鍥剧墖
+// [Comment removed - encoding issue]
         var importedDoc = app.open(tempFile);
         importedDoc.selection.selectAll();
         importedDoc.selection.copy();
         importedDoc.close(SaveOptions.DONOTSAVECHANGES);
         
-        // 绮樿创鍒板綋鍓嶆枃妗ｇ殑鏂板浘灞?        app.activeDocument = doc;
+// [Comment removed - encoding issue]
         var newLayer = doc.artLayers.add();
         newLayer.name = "Nano Banana Result";
         doc.paste();
         
-        // 娓呯悊涓存椂鏂囦欢
+// [Comment removed - encoding issue]
         if (tempFile.exists) {
             tempFile.remove();
         }
@@ -1232,7 +1232,7 @@ function decodeBase64Fast(base64Str) {
         var output = [];
         var len = base64Str.length;
         
-        // 浣跨敤鏁扮粍瀛樺偍锛岄伩鍏嶅瓧绗︿覆鎷兼帴鐨勬€ц兘闂
+// [Comment removed - encoding issue]
         for (var i = 0; i < len; i += 4) {
             var enc1 = chars.indexOf(base64Str.charAt(i));
             var enc2 = chars.indexOf(base64Str.charAt(i + 1));
@@ -1269,10 +1269,10 @@ function decodeBase64(base64Str) {
 }
 
 /**
- * 鑷姩閿愬寲澧炲己锛堥珮鍙嶅樊淇濈暀 + 鍙犲姞锛? * 鍊熼壌閲夊厜AI鐨刡anana-post-processing.jsx
+ *  + ? * AIanana-post-processing.jsx
  * 
- * @param {string} layerName - 瑕佸鐞嗙殑鍥惧眰鍚嶇О
- * @param {number} radius - 楂樺弽宸繚鐣欏崐寰勶紙1.0-2.0锛屾帹鑽?.5锛? * @returns {string} JSON鏍煎紡鐨勭粨鏋? */
+ * @param {string} layerName - 
+ * @param {number} radius - 1.0-2.0?.5? * @returns {string} JSON? */
 function applySharpenEnhancement(layerName, radius) {
     var originalDialogs = app.displayDialogs;
     app.displayDialogs = DialogModes.NO;
@@ -1286,7 +1286,7 @@ function applySharpenEnhancement(layerName, radius) {
         var doc = app.activeDocument;
         var debugInfo = "SHARPEN_START: " + layerName + ", radius=" + radius;
         
-        // 鏌ユ壘鐩爣鍥惧眰
+// [Comment removed - encoding issue]
         var targetLayer = null;
         for (var i = 0; i < doc.layers.length; i++) {
             if (doc.layers[i].name === layerName) {
@@ -1302,28 +1302,28 @@ function applySharpenEnhancement(layerName, radius) {
         
         debugInfo += "\nLAYER_FOUND: " + targetLayer.name;
         
-        // 姝ラ1: 澶嶅埗鍥惧眰
+// [Comment removed - encoding issue]
         doc.activeLayer = targetLayer;
         var sharpenLayer = targetLayer.duplicate();
-        sharpenLayer.name = layerName + " (閿愬寲)";
+        sharpenLayer.name = layerName + " ()";
         debugInfo += "\nLAYER_DUPLICATED: " + sharpenLayer.name;
         
-        // 姝ラ2: 搴旂敤楂樺弽宸繚鐣欐护闀?        doc.activeLayer = sharpenLayer;
+// [Comment removed - encoding issue]
         var highPassDesc = new ActionDescriptor();
         highPassDesc.putUnitDouble(charIDToTypeID('Rds '), charIDToTypeID('#Pxl'), parseFloat(radius));
         executeAction(charIDToTypeID('HghP'), highPassDesc, DialogModes.NO);
         debugInfo += "\nHIGH_PASS_APPLIED: " + radius + "px";
         
-        // 姝ラ3: 璁剧疆娣峰悎妯″紡涓哄彔鍔?        sharpenLayer.blendMode = BlendMode.OVERLAY;
+// [Comment removed - encoding issue]
         debugInfo += "\nBLEND_MODE_SET: Overlay";
         
-        // 姝ラ4: 鍚堝苟鍥惧眰
+// [Comment removed - encoding issue]
         doc.activeLayer = sharpenLayer;
         var mergeDownDesc = new ActionDescriptor();
         executeAction(charIDToTypeID('Mrg2'), mergeDownDesc, DialogModes.NO);
         debugInfo += "\nLAYERS_MERGED";
         
-        // 姝ラ5: 閲嶅懡鍚嶅悎骞跺悗鐨勫浘灞?        var mergedLayer = doc.activeLayer;
+// [Comment removed - encoding issue]
         mergedLayer.name = layerName;
         debugInfo += "\nLAYER_RENAMED: " + mergedLayer.name;
         debugInfo += "\nSHARPEN_COMPLETE";
@@ -1339,7 +1339,7 @@ function applySharpenEnhancement(layerName, radius) {
 }
 
 /**
- * 閲嶅懡鍚嶅浘灞? * @param {string} oldName - 鏃у浘灞傚悕绉? * @param {string} newName - 鏂板浘灞傚悕绉? * @returns {string} JSON鏍煎紡鐨勭粨鏋? */
+ * ? * @param {string} oldName - ? * @param {string} newName - ? * @returns {string} JSON? */
 function renameLayer(oldName, newName) {
     try {
         if (!app.documents || app.documents.length === 0) {
@@ -1348,7 +1348,7 @@ function renameLayer(oldName, newName) {
         
         var doc = app.activeDocument;
         
-        // 鏌ユ壘鍥惧眰
+// [Comment removed - encoding issue]
         for (var i = 0; i < doc.layers.length; i++) {
             if (doc.layers[i].name === oldName) {
                 doc.layers[i].name = newName;
@@ -1439,14 +1439,14 @@ function moveLayerToGroup(layerName, groupName) {
 }
 
 /**
- * [宸插簾寮?v1.8.1] Download image from URL using Socket
+ * [?v1.8.1] Download image from URL using Socket
  * 
- * 姝ゅ嚱鏁板凡涓嶅啀浣跨敤锛屽洜涓猴細
- * 1. 鉂?Socket瀵笻TTPS鏀寔涓嶅彲闈狅紙20%鎴愬姛鐜囷級
- * 2. 鉁?鐜板湪鐢盝avaScript绔娇鐢∟ode.js鐨刪ttps妯″潡涓嬭浇锛?9.9%鎴愬姛鐜囷級
- * 3. 鉁?JavaScript涓嬭浇瀹屾垚鍚庣洿鎺ヤ紶閫掓湰鍦版枃浠惰矾寰勭粰JSX
- * 4. 鉁?JSX鍙渶澶勭悊鏈湴鏂囦欢锛屼笉鍐嶉渶瑕佺綉缁滀笅杞? * 
- * 淇濈暀姝ゅ嚱鏁颁粎渚涘弬鑰冨拰鍚戝悗鍏煎
+ * 
+ * 1. ?SocketTTPS20%
+ * 2. ?avaScriptode.jsttps?9.9%
+ * 3. ?JavaScriptJSX
+ * 4. ?JSX? * 
+ * 
  */
 function downloadImage_DEPRECATED(url) {
     try {
@@ -1487,8 +1487,8 @@ function downloadImage_DEPRECATED(url) {
 }
 
 /**
- * 灏嗗浘灞傚榻愬苟缂╂斁鍒板綋鍓嶉€夊尯鐨勪綅缃拰灏哄
- * @param {string} layerName - 瑕佸榻愮殑鍥惧眰鍚嶇О
+ * 
+ * @param {string} layerName - 
  * @returns {string} JSON result
  */
 function alignLayerToSelection(layerName) {
@@ -1499,7 +1499,7 @@ function alignLayerToSelection(layerName) {
         
         var doc = app.activeDocument;
         
-        // 妫€鏌ユ槸鍚︽湁閫夊尯
+// [Comment removed - encoding issue]
         var selectionBounds;
         try {
             selectionBounds = doc.selection.bounds;
@@ -1510,7 +1510,7 @@ function alignLayerToSelection(layerName) {
             return "ERROR: No active selection";
         }
         
-        // 鑾峰彇閫夊尯鐨勪綅缃拰灏哄
+// [Comment removed - encoding issue]
         var selLeft = parseFloat(selectionBounds[0]);
         var selTop = parseFloat(selectionBounds[1]);
         var selRight = parseFloat(selectionBounds[2]);
@@ -1520,7 +1520,7 @@ function alignLayerToSelection(layerName) {
         var selCenterX = selLeft + selWidth / 2;
         var selCenterY = selTop + selHeight / 2;
         
-        // 鏌ユ壘鐩爣鍥惧眰
+// [Comment removed - encoding issue]
         var targetLayer = null;
         for (var i = 0; i < doc.layers.length; i++) {
             if (doc.layers[i].name === layerName) {
@@ -1533,9 +1533,9 @@ function alignLayerToSelection(layerName) {
             return "ERROR: Layer not found: " + layerName;
         }
         
-        // 璁剧疆涓哄綋鍓嶅浘灞?        doc.activeLayer = targetLayer;
+// [Comment removed - encoding issue]
         
-        // 鑾峰彇鍥惧眰鐨勫綋鍓嶈竟鐣?        var layerBounds = targetLayer.bounds;
+// [Comment removed - encoding issue]
         var layerLeft = parseFloat(layerBounds[0]);
         var layerTop = parseFloat(layerBounds[1]);
         var layerRight = parseFloat(layerBounds[2]);
@@ -1545,13 +1545,13 @@ function alignLayerToSelection(layerName) {
         var layerCenterX = layerLeft + layerWidth / 2;
         var layerCenterY = layerTop + layerHeight / 2;
         
-        // 璁＄畻缂╂斁姣斾緥锛堝畬鍏ㄥ尮閰嶉€夊尯灏哄锛?        var scaleX = (selWidth / layerWidth) * 100;
+// [Comment removed - encoding issue]
         var scaleY = (selHeight / layerHeight) * 100;
         
-        // 鎵ц缂╂斁锛堜娇鐢ㄧ簿纭殑瀹介珮姣斾緥锛?        if (Math.abs(scaleX - 100) > 0.1 || Math.abs(scaleY - 100) > 0.1) {
+// [Comment removed - encoding issue]
             targetLayer.resize(scaleX, scaleY, AnchorPosition.MIDDLECENTER);
             
-            // 閲嶆柊鑾峰彇缂╂斁鍚庣殑杈圭晫
+// [Comment removed - encoding issue]
             layerBounds = targetLayer.bounds;
             layerLeft = parseFloat(layerBounds[0]);
             layerTop = parseFloat(layerBounds[1]);
@@ -1563,15 +1563,15 @@ function alignLayerToSelection(layerName) {
             layerCenterY = layerTop + layerHeight / 2;
         }
         
-        // 璁＄畻闇€瑕佺Щ鍔ㄧ殑璺濈锛堢簿纭榻愬埌閫夊尯涓績锛?        var deltaX = selCenterX - layerCenterX;
+// [Comment removed - encoding issue]
         var deltaY = selCenterY - layerCenterY;
         
-        // 绉诲姩鍥惧眰鍒伴€夊尯浣嶇疆
+// [Comment removed - encoding issue]
         if (Math.abs(deltaX) > 0.1 || Math.abs(deltaY) > 0.1) {
             targetLayer.translate(deltaX, deltaY);
         }
         
-        // 鑾峰彇鏈€缁堜綅缃?        var finalBounds = targetLayer.bounds;
+// [Comment removed - encoding issue]
         
         return JSON.stringify({
             success: true,
