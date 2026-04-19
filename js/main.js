@@ -3067,87 +3067,32 @@
                 `Network request failed: ${errorMessage}`);
         }
 
-        // 对于SSE响应，直接使用stream reader而不是text()，避免ERR_INCOMPLETE_CHUNKED_ENCODING
+        // 🔧 对于 /v1/draw/nano-banana 端点，直接读取 JSON 响应（不是 SSE）
         let responseText = '';
         const readStartTime = Date.now();
         
-        console.log('📖 Reading response body using stream reader...');
-        
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let chunks = [];
-        let lastChunkTime = Date.now();
-        const READ_TIMEOUT = 300000; // 5分钟总超时
-        const CHUNK_TIMEOUT = 60000;  // 60秒无新数据则认为完成
+        console.log('📖 Reading response body as JSON...');
         
         try {
-            while (true) {
-                // 检查总超时
-                if (Date.now() - readStartTime > READ_TIMEOUT) {
-                    console.warn('⚠️ 读取超时(5分钟)，使用已接收的数据');
-                    break;
-                }
-                
-                // 检查chunk超时
-                if (Date.now() - lastChunkTime > CHUNK_TIMEOUT && chunks.length > 0) {
-                    console.warn('⚠️ 60秒无新数据，视为传输完成');
-                    break;
-                }
-                
-                let readResult;
-                try {
-                    readResult = await Promise.race([
-                        reader.read(),
-                        new Promise((_, reject) => 
-                            setTimeout(() => reject(new Error('Chunk read timeout')), CHUNK_TIMEOUT)
-                        )
-                    ]);
-                } catch (timeoutError) {
-                    console.warn('⚠️ 单个chunk超时(60秒)，使用已接收的数据');
-                    break;
-                }
-                
-                const { done, value } = readResult;
-                
-                if (done) {
-                    console.log('✅ Stream reading completed normally');
-                    break;
-                }
-                
-                const chunk = decoder.decode(value, { stream: true });
-                chunks.push(chunk);
-                lastChunkTime = Date.now();
-                console.log('📦 Received chunk:', chunk.length, 'bytes', `(total: ${chunks.length} chunks)`);
-            }
-            
-            responseText = chunks.join('');
+            responseText = await response.text();
             const readDuration = Date.now() - readStartTime;
             console.log('✅ Response body read successfully');
             console.log('📏 Total response length:', responseText.length, 'chars');
-            console.log('📦 Total chunks:', chunks.length);
             console.log('⏱️ Read duration:', readDuration + 'ms');
             
         } catch (readError) {
             const readDuration = Date.now() - readStartTime;
             console.error('========================================');
-            console.error('❌ STREAM READ ERROR');
+            console.error('❌ READ ERROR');
             console.error('⏱️ Duration before error:', readDuration + 'ms');
             console.error('🔴 Error Type:', readError.name);
             console.error('💬 Error Message:', readError.message);
             console.error('📚 Stack:', readError.stack);
-            console.error('📦 Chunks received before error:', chunks.length);
             console.error('========================================');
             
-            // 如果已经接收到了一些数据，尝试使用它们
-            if (chunks.length > 0) {
-                console.warn('⚠️ Error occurred but have partial data, attempting to use it');
-                responseText = chunks.join('');
-                console.log('📏 Partial response length:', responseText.length, 'chars');
-            } else {
-                throw new Error(config.language === 'zh' ? 
-                    `读取 API 响应失败: ${readError.message}` : 
-                    `Failed to read API response: ${readError.message}`);
-            }
+            throw new Error(config.language === 'zh' ? 
+                `读取 API 响应失败: ${readError.message}` : 
+                `Failed to read API response: ${readError.message}`);
         }
         
         // 检查响应是否为空
@@ -3179,63 +3124,7 @@
                 console.log('Removed BOM character');
             }
             
-            // Check if this is SSE (Server-Sent Events) format with multiple "data:" lines
-            if (cleanedText.includes('\ndata:') || cleanedText.startsWith('data:')) {
-                console.log('========================================');
-                console.log('🔄 DETECTED SSE FORMAT');
-                
-                // Split by "data:" and process all events
-                const dataLines = cleanedText.split(/\ndata:\s*/);
-                console.log('📊 Total SSE events found:', dataLines.length);
-                
-                let lastData = '';
-                let maxProgress = 0;
-                
-                // Process all events to extract progress
-                for (let i = 0; i < dataLines.length; i++) {
-                    const line = dataLines[i].trim();
-                    if (line && line.startsWith('{')) {
-                        try {
-                            const eventData = JSON.parse(line);
-                            console.log(`📦 SSE Event ${i + 1}:`, {
-                                status: eventData.status,
-                                progress: eventData.progress,
-                                hasResults: !!eventData.results
-                            });
-                            
-                            // Update progress if available
-                            if (eventData.progress !== undefined && eventData.progress > maxProgress) {
-                                maxProgress = eventData.progress;
-                                
-                                // Show real-time progress (only if showProgress is true)
-                                if (showProgress) {
-                                    showLoading(
-                                        config.language === 'zh' ? `提交中 ${maxProgress}%` : `Submitting ${maxProgress}%`,
-                                        config.language === 'zh' ? 
-                                            `${eventData.status === 'running' ? '正在处理...' : '处理中'}` :
-                                            `${eventData.status === 'running' ? 'Processing...' : 'Processing'}`
-                                    );
-                                }
-                            }
-                            
-                            // Keep the last event
-                            lastData = line;
-                        } catch (e) {
-                            console.warn('⚠️ Failed to parse SSE event:', line.substring(0, 50));
-                        }
-                    }
-                }
-                
-                // Remove "data:" prefix if present at the start
-                if (lastData.startsWith('data:')) {
-                    lastData = lastData.substring(5).trim();
-                }
-                
-                cleanedText = lastData;
-                console.log('✅ Final SSE event selected (first 200 chars):', cleanedText.substring(0, 200));
-                console.log('📈 Max progress reached:', maxProgress + '%');
-                console.log('========================================');
-            }
+            // 🔧 不再处理 SSE 格式，直接解析 JSON 响应
             
             console.log('🔍 Parsing JSON...');
             data = JSON.parse(cleanedText);
