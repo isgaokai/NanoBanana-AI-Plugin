@@ -4871,6 +4871,7 @@
             
             // Build request body (same format as callNanoBananaAPI)
             const requestBody = {
+                model: task.params.model || 'gpt-nano-banana',  // 必须指定 model
                 prompt: task.params.prompt,
                 imageSize: task.params.imageSize || '2K',
                 referenceImage: imageBase64  // Base64 image data
