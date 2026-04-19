@@ -3192,7 +3192,41 @@
                 console.log('Removed BOM character');
             }
             
-            // 🔧 不再处理 SSE 格式，直接解析 JSON 响应
+            // 🔧 检测并处理 SSE 格式
+            if (cleanedText.includes('\ndata:') || cleanedText.startsWith('data:')) {
+                console.log('========================================');
+                console.log('🔄 检测到 SSE 格式响应');
+                
+                // Split by "data:" and get the last valid event
+                const dataLines = cleanedText.split(/\ndata:\s*/);
+                console.log('📊 SSE 事件总数:', dataLines.length);
+                
+                let lastValidData = null;
+                
+                // 从后往前找最后一个有效的 JSON
+                for (let i = dataLines.length - 1; i >= 0; i--) {
+                    const line = dataLines[i].trim();
+                    if (line && line.startsWith('{')) {
+                        try {
+                            const eventData = JSON.parse(line);
+                            console.log(`✅ 使用第 ${i + 1} 个事件 (status: ${eventData.status})`);
+                            lastValidData = line;
+                            break;
+                        } catch (e) {
+                            console.warn(`⚠️ 第 ${i + 1} 个事件解析失败:`, line.substring(0, 50));
+                        }
+                    }
+                }
+                
+                if (lastValidData) {
+                    cleanedText = lastValidData;
+                    console.log('✅ SSE 处理完成，使用最后一个有效事件');
+                } else {
+                    throw new Error('未找到有效的 SSE 事件');
+                }
+                
+                console.log('========================================');
+            }
             
             console.log('🔍 Parsing JSON...');
             data = JSON.parse(cleanedText);
