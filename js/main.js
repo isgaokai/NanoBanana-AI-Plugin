@@ -4859,13 +4859,19 @@
             // Read image file and convert to base64
             const imageBase64 = await fileToBase64(imageInfo.filePath);
             
-            // Build request body (same format as callNanoBananaAPI)
+            // Build request body (same format as original editImage)
             const requestBody = {
                 model: task.params.model || 'gpt-nano-banana',  // 必须指定 model
                 prompt: task.params.prompt,
+                aspectRatio: 'auto',  // 编辑模式使用 auto 保持原图比例
                 imageSize: task.params.imageSize || '2K',
-                referenceImage: imageBase64  // Base64 image data
+                urls: [imageBase64]  // 要编辑的图片（数组格式）
             };
+            
+            // 添加额外参考图（如果有）
+            if (task.params.referenceImage) {
+                requestBody.referenceImage = task.params.referenceImage;
+            }
             
             console.log(`🚀 调用编辑 API: /v1/draw/nano-banana`);
             
