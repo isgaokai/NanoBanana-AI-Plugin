@@ -57,6 +57,12 @@
                 <label data-i18n="config.apiKey">API Key</label>
                 <div class="input-group">
                     <input type="password" id="apiKey" class="input" data-i18n-placeholder="config.apiKeyPlaceholder">
+                    <button class="btn-icon" onclick="toggleApiKeyVisibility()" title="显示/隐藏 API Key">
+                        <svg id="apiKeyEyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
                     <button class="btn-icon" onclick="saveApiKey()" data-i18n-title="config.save">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                             <path d="M13 3L6 10L3 7"/>
@@ -284,7 +290,10 @@
         <div class="tab-content active" id="generate-panel">
             <div class="panel">
                 <div class="form-group">
-                    <label data-i18n="generate.prompt">Prompt</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label data-i18n="generate.prompt" style="margin: 0;">Prompt</label>
+                        <span id="generatePromptCharCount" style="font-size: 11px; color: #787878;">0 / 5000 字</span>
+                    </div>
                     <textarea id="generatePrompt" class="textarea" rows="4" data-i18n-placeholder="generate.promptPlaceholder"></textarea>
                 </div>
 
@@ -780,6 +789,16 @@
                         <!-- More (effects, scene, material, special, combo) -->
                         <div class="preset-category-content" data-category="more">
                             <div class="preset-subcategory">
+                                <div class="preset-subcategory-title">🔧 辅助工具</div>
+                                <button class="preset-button-small" onclick="applyPresetDirect('depthMap')">深度图</button>
+                                <button class="preset-button-small" onclick="applyPresetDirect('normalMap')">法向贴图</button>
+                                <button class="preset-button-small" onclick="applyPresetDirect('lineArt')">线稿</button>
+                                <button class="preset-button-small" onclick="applyPresetDirect('flatColor')">色稿</button>
+                                <button class="preset-button-small" onclick="applyPresetDirect('whiteModel')">白模</button>
+                                <button class="preset-button-small" onclick="applyPresetDirect('neutralGray')">中性灰</button>
+                                <button class="preset-button-small" onclick="applyPresetDirect('idChannel')">ID通道</button>
+                            </div>
+                            <div class="preset-subcategory">
                                 <div class="preset-subcategory-title">✨ 特效增强</div>
                                 <button class="preset-button-small" onclick="applyPresetDirect('weaponGlow')">武器发光</button>
                                 <button class="preset-button-small" onclick="applyPresetDirect('fullEffect')">全图特效光</button>
@@ -817,7 +836,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label data-i18n="edit.instructions">Edit Instructions</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label data-i18n="edit.instructions" style="margin: 0;">Edit Instructions</label>
+                        <span id="editPromptCharCount" style="font-size: 11px; color: #787878;">0 / 5000 字</span>
+                    </div>
                     <textarea id="editPrompt" class="textarea" rows="4" data-i18n-placeholder="edit.instructionsPlaceholder"></textarea>
                 </div>
 

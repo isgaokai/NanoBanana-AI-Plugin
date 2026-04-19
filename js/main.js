@@ -208,6 +208,56 @@
             size: '4K'
         },
         
+        // 🔧 辅助工具类
+        depthMap: {
+            name: '深度图',
+            category: '辅助工具',
+            prompt: `生成深度图/depth map，将图像转换为灰度深度图，近处物体为白色，远处物体为黑色，精确表现物体的空间距离关系，用于3D重建和视觉效果。`,
+            size: '2K'
+        },
+        
+        normalMap: {
+            name: '法向贴图',
+            category: '辅助工具',
+            prompt: `生成法向贴图/normal map，将图像表面法线信息转换为RGB颜色，用于3D建模和材质贴图，保留物体表面细节和凹凸信息。`,
+            size: '2K'
+        },
+        
+        lineArt: {
+            name: '线稿',
+            category: '辅助工具',
+            prompt: `生成线稿/line art，提取图像的轮廓和边缘线条，转换为黑白线条图，保留主要结构和细节，适合绘画参考和二次创作。`,
+            size: '2K'
+        },
+        
+        flatColor: {
+            name: '色稿',
+            category: '辅助工具',
+            prompt: `生成色稿/flat color，将图像转换为平涂色块，去除光影和渐变，保留主要色彩区域，适合动画和插画制作。`,
+            size: '2K'
+        },
+        
+        whiteModel: {
+            name: '白模',
+            category: '辅助工具',
+            prompt: `生成白模/white model，将图像转换为纯白色3D模型效果，保留物体的形状和结构，去除所有颜色和纹理，适合结构分析和3D参考。`,
+            size: '2K'
+        },
+        
+        neutralGray: {
+            name: '中性灰',
+            category: '辅助工具',
+            prompt: `生成中性灰辅助层/neutral gray，创建50%灰度的光影分析图，用于观察和调整图像的明暗关系，是修图的重要辅助工具。`,
+            size: '2K'
+        },
+        
+        idChannel: {
+            name: 'ID通道',
+            category: '辅助工具',
+            prompt: `生成ID通道/ID channel，将图像中不同物体用不同颜色标记，每个物体有唯一的纯色标识，用于后期合成和精确选择。`,
+            size: '2K'
+        },
+        
         // ✨ 特效增强类
         weaponGlow: {
             name: '武器发光',
@@ -2111,6 +2161,9 @@
         
         // Apply preset prompt
         promptTextarea.value = preset.prompt;
+        
+        // Update character count after applying preset
+        updateCharCount('editPrompt', 'editPromptCharCount');
         
         // Apply preset size if available
         if (preset.size && imageSizeSelect) {
@@ -4317,12 +4370,75 @@
     
 
     // ========== Start ==========
+    // ========== API Key Visibility Toggle ==========
+    window.toggleApiKeyVisibility = function() {
+        const apiKeyInput = document.getElementById('apiKey');
+        const eyeIcon = document.getElementById('apiKeyEyeIcon');
+        
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            // Change to "eye-off" icon
+            eyeIcon.innerHTML = `
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+            `;
+        } else {
+            apiKeyInput.type = 'password';
+            // Change to "eye" icon
+            eyeIcon.innerHTML = `
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            `;
+        }
+    };
+
+    // ========== Prompt Character Count ==========
+    function updateCharCount(textareaId, counterId) {
+        const textarea = document.getElementById(textareaId);
+        const counter = document.getElementById(counterId);
+        if (textarea && counter) {
+            const count = textarea.value.length;
+            counter.textContent = `${count} / 5000 字`;
+            
+            // Change color if approaching limit
+            if (count > 4500) {
+                counter.style.color = '#ff6b6b';
+            } else if (count > 4000) {
+                counter.style.color = '#ffa726';
+            } else {
+                counter.style.color = '#787878';
+            }
+        }
+    }
+
+    function setupCharCounters() {
+        const generatePrompt = document.getElementById('generatePrompt');
+        const editPrompt = document.getElementById('editPrompt');
+        
+        if (generatePrompt) {
+            generatePrompt.addEventListener('input', () => {
+                updateCharCount('generatePrompt', 'generatePromptCharCount');
+            });
+            // Initial count
+            updateCharCount('generatePrompt', 'generatePromptCharCount');
+        }
+        
+        if (editPrompt) {
+            editPrompt.addEventListener('input', () => {
+                updateCharCount('editPrompt', 'editPromptCharCount');
+            });
+            // Initial count
+            updateCharCount('editPrompt', 'editPromptCharCount');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         // Delay init to allow ExtendScript engine to fully initialize
         setTimeout(() => {
             init();
             loadCustomPresets();
             loadHistory();
+            setupCharCounters();
         }, 500);
     });
 
