@@ -117,6 +117,48 @@
                 </select>
             </div>
             
+            <!-- 🆕 Data Save Location -->
+            <div class="form-group" style="margin-top: 16px;">
+                <label>
+                    <span data-i18n="config.saveLocation">数据保存位置 / Save Location</span>
+                    <span class="badge" style="margin-left: 8px; padding: 2px 6px; background: rgba(76, 175, 80, 0.2); color: #4CAF50; font-size: 10px; border-radius: 3px;">新功能</span>
+                </label>
+                <div class="input-group">
+                    <input type="text" id="saveLocationPath" class="input" readonly 
+                           placeholder="点击选择文件夹..." 
+                           data-i18n-placeholder="config.saveLocationPlaceholder">
+                    <button class="btn-secondary" onclick="selectSaveLocation()" style="padding: 8px 12px; white-space: nowrap;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span data-i18n="config.selectFolder">选择</span>
+                    </button>
+                </div>
+                <div class="desc" style="margin-top: 4px; font-size: 11px; color: #888;">
+                    <span data-i18n="config.saveLocationDesc">自动保存生成的图片到本地，加快导入速度</span>
+                    <span id="cacheInfo" style="margin-left: 8px; color: #4CAF50;"></span>
+                </div>
+                <div class="checkbox-row" style="margin-top: 8px;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="autoSaveImages" onchange="toggleAutoSaveImages()" checked>
+                        <span data-i18n="config.autoSaveImages">启用本地缓存</span>
+                    </label>
+                    <button class="btn-icon" onclick="openCacheFolder()" title="打开缓存文件夹" style="margin-left: 8px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </button>
+                    <button class="btn-icon" onclick="clearImageCache()" title="清理缓存" style="margin-left: 4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
             <!-- History Manager -->
             <div class="form-group" style="margin-top: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">

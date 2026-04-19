@@ -21,7 +21,9 @@
         saveHistory: true,  // 保存历史记录（默认开启）
         layerNameFormat: 'timestamp',  // 图层命名格式: 'simple', 'timestamp', 'detailed'
         autoStamp: false,  // 编辑后自动盖印（新增）
-        alignmentMode: 'center'  // 图像对齐模式: 'center' | 'exact'（新增）
+        alignmentMode: 'center',  // 图像对齐模式: 'center' | 'exact'（新增）
+        saveLocationPath: '',  // 数据保存位置（v1.19.0 新增）
+        autoSaveImages: true  // 自动保存图片到本地（v1.19.0 新增）
     };
     
     let historyRecords = [];  // 历史记录数组
@@ -1196,7 +1198,20 @@
             'align.full': '1:1 Align',
             'align.desc.none': 'Original size, no adjustment',
             'align.desc.standard': 'Extend to standard ratio (1:1, 4:3, 16:9), auto-crop after generation',
-            'align.desc.full': 'Extend to 1:1 square, auto-crop after generation (more pixel loss)'
+            'align.desc.full': 'Extend to 1:1 square, auto-crop after generation (more pixel loss)',
+            'config.saveLocation': 'Save Location',
+            'config.saveLocationPlaceholder': 'Click to select folder...',
+            'config.saveLocationDesc': 'Auto-save generated images locally to speed up imports',
+            'config.autoSaveImages': 'Enable Local Cache',
+            'config.selectFolder': 'Select',
+            'config.cacheSize': 'Cache size',
+            'config.cacheCleared': 'Cache cleared',
+            'config.openCacheFolder': 'Open cache folder',
+            'message.saveLocationUpdated': 'Save location updated',
+            'message.selectSaveLocation': 'Please select save location first',
+            'message.noSaveLocation': 'Please set save location first',
+            'message.confirmClearCache': 'Are you sure you want to clear all cached images?',
+            'message.clearCacheFailed': 'Failed to clear cache'
         },
         zh: {
             'app.title': 'Nano Banana AI',
@@ -1286,7 +1301,20 @@
             'align.full': '1:1对齐',
             'align.desc.none': '原始尺寸，不做调整',
             'align.desc.standard': '扩展到标准比例 (1:1, 4:3, 16:9)，生成后自动裁切回原比例',
-            'align.desc.full': '扩展到 1:1 正方形，生成后自动裁切回原比例（像素损失较多）'
+            'align.desc.full': '扩展到 1:1 正方形，生成后自动裁切回原比例（像素损失较多）',
+            'config.saveLocation': '数据保存位置',
+            'config.saveLocationPlaceholder': '点击选择文件夹...',
+            'config.saveLocationDesc': '自动保存生成的图片到本地，加快导入速度',
+            'config.autoSaveImages': '启用本地缓存',
+            'config.selectFolder': '选择',
+            'config.cacheSize': '缓存大小',
+            'config.cacheCleared': '缓存已清理',
+            'config.openCacheFolder': '打开缓存文件夹',
+            'message.saveLocationUpdated': '保存位置已更新',
+            'message.selectSaveLocation': '请先选择保存位置',
+            'message.noSaveLocation': '请先设置保存位置',
+            'message.confirmClearCache': '确定要清理所有缓存图片吗？',
+            'message.clearCacheFailed': '清理缓存失败'
         }
     };
 
@@ -1389,6 +1417,11 @@
         loadConfig();
         updateTranslations();
         updateStatus(t('status.ready'), 'success');
+        
+        // 🆕 Update cache info if save location is set
+        if (config.saveLocationPath) {
+            updateCacheInfo();
+        }
         
         // Test basic JSX execution first
         console.log('📂 Testing basic JSX execution...');
@@ -1521,6 +1554,14 @@
                 document.getElementById('sharpenStrengthGroup').style.display = 
                     config.autoSharpen ? 'block' : 'none';
                 
+                // 🆕 Load save location settings
+                if (config.saveLocationPath) {
+                    document.getElementById('saveLocationPath').value = config.saveLocationPath;
+                }
+                if (config.autoSaveImages !== undefined) {
+                    document.getElementById('autoSaveImages').checked = config.autoSaveImages;
+                }
+                
                 updateTranslations();
             }
             
@@ -1575,6 +1616,261 @@
         console.log('Auto stamp:', config.autoStamp);
     };
     
+    // ========== Image Cache Management ==========
+    
+    /**
+     * Select save location folder
+     */
+    window.selectSaveLocation = function() {
+        const csInterface = new CSInterface();
+        
+        // Use CEP system path as default
+        const defaultPath = csInterface.getSystemPath(SystemPath.USER_DATA);
+        const suggestedPath = config.saveLocationPath || defaultPath + '/NanoBananaAI/images';
+        
+        // Open folder selection dialog
+        window.cep.fs.showOpenDialog(false, true, 'Select Save Location', suggestedPath, null, (result) => {
+            if (result.err === window.cep.fs.NO_ERROR && result.data && result.data.length > 0) {
+                const selectedPath = result.data[0];
+                config.saveLocationPath = selectedPath;
+                document.getElementById('saveLocationPath').value = selectedPath;
+                saveConfig();
+                
+                // Create directory if not exists
+                createCacheDirectory(selectedPath);
+                
+                updateStatus(t('message.saveLocationUpdated') || '保存位置已更新', 'success');
+                updateCacheInfo();
+            }
+        });
+    };
+    
+    /**
+     * Create cache directory structure
+     */
+    function createCacheDirectory(basePath) {
+        const fs = window.cep.fs;
+        
+        // Create main directory
+        const mainDir = basePath + '/images';
+        if (fs.stat(mainDir).err !== 0) {
+            fs.makedir(mainDir);
+        }
+        
+        // Create subdirectories
+        const subdirs = ['generate', 'edit', 'thumbnails'];
+        subdirs.forEach(dir => {
+            const path = mainDir + '/' + dir;
+            if (fs.stat(path).err !== 0) {
+                fs.makedir(path);
+            }
+        });
+        
+        console.log('✅ 缓存目录已创建:', mainDir);
+    }
+    
+    /**
+     * Save image to local cache
+     * @param {string} imageUrl - Image URL or base64
+     * @param {string} type - 'generate' or 'edit'
+     * @param {object} metadata - Task metadata
+     * @returns {string} - Local file path
+     */
+    async function saveImageToCache(imageUrl, type, metadata = {}) {
+        if (!config.autoSaveImages || !config.saveLocationPath) {
+            console.log('⚠️ 缓存已禁用或未设置保存位置');
+            return null;
+        }
+        
+        try {
+            const fs = window.cep.fs;
+            const timestamp = Date.now();
+            const fileName = `${type}_${timestamp}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+            const savePath = `${config.saveLocationPath}/images/${type}/${fileName}`;
+            
+            // Download image if it's a URL
+            let imageData;
+            if (imageUrl.startsWith('http')) {
+                console.log(`📥 下载图片到缓存: ${imageUrl}`);
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+                imageData = await blobToBase64(blob);
+            } else if (imageUrl.startsWith('data:')) {
+                // Already base64
+                imageData = imageUrl.split(',')[1]; // Remove data:image/...;base64,
+            } else {
+                throw new Error('Invalid image format');
+            }
+            
+            // Save to file
+            const result = fs.writeFile(savePath, imageData, cep.encoding.Base64);
+            
+            if (result.err !== 0) {
+                throw new Error(`Failed to save file: ${result.err}`);
+            }
+            
+            console.log(`✅ 图片已保存到缓存: ${savePath}`);
+            
+            // Save metadata
+            const metadataPath = savePath.replace('.jpg', '.json');
+            const metadataContent = JSON.stringify({
+                url: imageUrl,
+                type: type,
+                timestamp: timestamp,
+                prompt: metadata.prompt,
+                model: metadata.model,
+                size: metadata.size
+            }, null, 2);
+            
+            fs.writeFile(metadataPath, metadataContent, cep.encoding.UTF8);
+            
+            updateCacheInfo();
+            return savePath;
+            
+        } catch (error) {
+            console.error('❌ 保存图片到缓存失败:', error);
+            return null;
+        }
+    }
+    
+    /**
+     * Convert Blob to Base64
+     */
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64 = reader.result.split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+    
+    /**
+     * Toggle auto save images
+     */
+    window.toggleAutoSaveImages = function() {
+        config.autoSaveImages = document.getElementById('autoSaveImages').checked;
+        saveConfig();
+        console.log('Auto save images:', config.autoSaveImages);
+        
+        if (config.autoSaveImages && !config.saveLocationPath) {
+            // Prompt user to select location
+            setTimeout(() => {
+                if (confirm(t('message.selectSaveLocation') || '请先选择保存位置')) {
+                    selectSaveLocation();
+                }
+            }, 100);
+        }
+    };
+    
+    /**
+     * Open cache folder in Explorer
+     */
+    window.openCacheFolder = function() {
+        if (!config.saveLocationPath) {
+            updateStatus(t('message.noSaveLocation') || '请先设置保存位置', 'warning');
+            return;
+        }
+        
+        const csInterface = new CSInterface();
+        const cachePath = config.saveLocationPath + '/images';
+        
+        // Open in Explorer/Finder
+        csInterface.evalScript(`
+            var folder = new Folder("${cachePath.replace(/\\/g, '\\\\')}");
+            if (folder.exists) {
+                folder.execute();
+            }
+        `);
+    };
+    
+    /**
+     * Clear image cache
+     */
+    window.clearImageCache = function() {
+        if (!config.saveLocationPath) {
+            updateStatus(t('message.noSaveLocation') || '请先设置保存位置', 'warning');
+            return;
+        }
+        
+        if (!confirm(t('message.confirmClearCache') || '确定要清理所有缓存图片吗？')) {
+            return;
+        }
+        
+        try {
+            const fs = window.cep.fs;
+            const cachePath = config.saveLocationPath + '/images';
+            
+            // Remove all files in subdirectories
+            const subdirs = ['generate', 'edit', 'thumbnails'];
+            let deletedCount = 0;
+            
+            subdirs.forEach(dir => {
+                const dirPath = cachePath + '/' + dir;
+                const result = fs.readdir(dirPath);
+                
+                if (result.err === 0 && result.data) {
+                    result.data.forEach(fileName => {
+                        const filePath = dirPath + '/' + fileName;
+                        const deleteResult = fs.deleteFile(filePath);
+                        if (deleteResult.err === 0) {
+                            deletedCount++;
+                        }
+                    });
+                }
+            });
+            
+            updateStatus(`${t('config.cacheCleared')} (${deletedCount} 个文件)`, 'success');
+            updateCacheInfo();
+            
+        } catch (error) {
+            console.error('清理缓存失败:', error);
+            updateStatus(t('message.clearCacheFailed') || '清理缓存失败', 'error');
+        }
+    };
+    
+    /**
+     * Update cache info display
+     */
+    function updateCacheInfo() {
+        const infoEl = document.getElementById('cacheInfo');
+        if (!infoEl || !config.saveLocationPath) return;
+        
+        try {
+            const fs = window.cep.fs;
+            const cachePath = config.saveLocationPath + '/images';
+            
+            let totalFiles = 0;
+            let totalSize = 0;
+            
+            const subdirs = ['generate', 'edit', 'thumbnails'];
+            subdirs.forEach(dir => {
+                const dirPath = cachePath + '/' + dir;
+                const result = fs.readdir(dirPath);
+                
+                if (result.err === 0 && result.data) {
+                    result.data.forEach(fileName => {
+                        const filePath = dirPath + '/' + fileName;
+                        const statResult = fs.stat(filePath);
+                        if (statResult.err === 0 && statResult.data) {
+                            totalFiles++;
+                            totalSize += statResult.data.size || 0;
+                        }
+                    });
+                }
+            });
+            
+            const sizeMB = (totalSize / 1024 / 1024).toFixed(2);
+            infoEl.textContent = `${totalFiles} 个文件 | ${sizeMB} MB`;
+            
+        } catch (error) {
+            console.error('更新缓存信息失败:', error);
+        }
+    }
+    
     // ========== History Management ==========
     function addHistoryRecord(type, params, result) {
         if (!config.saveHistory) return;
@@ -1584,6 +1880,7 @@
             type: type,  // 'generate' or 'edit'
             prompt: params.prompt || params.instructions || '',
             url: result.imageUrl,
+            localPath: result.localPath || null,  // 🆕 保存本地缓存路径
             timestamp: Date.now()
         };
         
@@ -2432,7 +2729,40 @@
         }
     }
 
-    async function importImage(imageUrl) {
+    async function importImage(imageUrl, localCachePath = null) {
+        // 🆕 Check if local cache exists
+        if (localCachePath && window.cep && window.cep.fs) {
+            const fs = window.cep.fs;
+            const statResult = fs.stat(localCachePath);
+            
+            if (statResult.err === 0) {
+                console.log('✅ 使用本地缓存，跳过下载:', localCachePath);
+                showLoading(
+                    config.language === 'zh' ? '导入到 Photoshop...' : 'Importing to Photoshop...',
+                    config.language === 'zh' ? '使用本地缓存' : 'Using local cache'
+                );
+                
+                // Jump directly to import step
+                try {
+                    const result = await callJSX('importImageFromURL', [localCachePath]);
+                    console.log('✅ Import result:', result);
+                    
+                    if (result && result.error) {
+                        throw new Error(result.error);
+                    }
+                    
+                    hideLoading();
+                    return result;
+                    
+                } catch (error) {
+                    console.warn('⚠️ 本地缓存导入失败，尝试在线下载:', error);
+                    // Fall through to download from URL
+                }
+            } else {
+                console.log('⚠️ 本地缓存不存在，从 URL 下载');
+            }
+        }
+        
         showLoading(
             config.language === 'zh' ? '下载图片...' : 'Downloading image...', 
             config.language === 'zh' ? '正在从服务器获取' : 'Fetching from server'
@@ -4329,11 +4659,12 @@
             
             // 转义字符串，避免注入
             const safeUrl = (record.url || '').replace(/'/g, "\\'");
+            const safeLocalPath = (record.localPath || '').replace(/'/g, "\\'").replace(/\\/g, '\\\\');
             const safePrompt = (record.prompt || '无描述').replace(/"/g, '&quot;');
             const typeLabel = record.type === 'generate' ? '生成' : '编辑';
             
             return `
-                <div class="history-item" onclick="reImportHistoryImage('${safeUrl}')" title="${safePrompt}">
+                <div class="history-item" onclick="reImportHistoryImage('${safeUrl}', '${safeLocalPath}')" title="${safePrompt}">
                     <img src="${record.url}" alt="history" loading="lazy" onerror="this.style.display='none'">
                     <div class="history-item-info">
                         <span class="history-item-type ${record.type}">${typeLabel}</span>
@@ -4389,13 +4720,14 @@
     };
     
     // 重新导入历史图片
-    window.reImportHistoryImage = async function(url) {
+    window.reImportHistoryImage = async function(url, localPath = '') {
         try {
             showLoading(config.language === 'zh' ? '正在导入图片...' : 'Importing image...');
             
             console.log('========================================');
             console.log('🔄 重新导入历史图片');
             console.log('🔗 URL:', url);
+            console.log('💾 Local Path:', localPath || 'N/A');
             console.log('========================================');
             
             // 验证URL
@@ -4403,8 +4735,8 @@
                 throw new Error('Invalid URL: ' + url);
             }
             
-            // 使用 importImage 函数（会先下载再导入）
-            let result = await importImage(url);
+            // 使用 importImage 函数（优先使用本地缓存）
+            let result = await importImage(url, localPath || null);
             
             console.log('📦 Import result:', result);
             console.log('📦 Result type:', typeof result);
@@ -4771,6 +5103,7 @@
                 if (pendingTask.result) {
                     addHistoryRecord(pendingTask.type, pendingTask.params, {
                         imageUrl: pendingTask.result,
+                        localPath: pendingTask.localPath || null,  // 🆕 传递本地路径
                         timestamp: new Date().toISOString()
                     });
                 }
@@ -4834,6 +5167,19 @@
                     task.result = actualData.results[0].url;
                     task.thumbnail = actualData.results[0].url;
                     console.log(`✅ 生成成功: ${task.result}`);
+                    
+                    // 🆕 Save to local cache
+                    const localPath = await saveImageToCache(task.result, 'generate', {
+                        prompt: task.params.prompt,
+                        model: task.params.model,
+                        size: task.params.imageSize
+                    });
+                    
+                    if (localPath) {
+                        task.localPath = localPath;
+                        console.log(`💾 已缓存到: ${localPath}`);
+                    }
+                    
                     return;
                 }
                 
@@ -4916,6 +5262,19 @@
                     task.result = actualData.results[0].url;
                     task.thumbnail = actualData.results[0].url;
                     console.log(`✅ 编辑成功: ${task.result}`);
+                    
+                    // 🆕 Save to local cache
+                    const localPath = await saveImageToCache(task.result, 'edit', {
+                        prompt: task.params.prompt,
+                        model: task.params.model,
+                        size: task.params.imageSize
+                    });
+                    
+                    if (localPath) {
+                        task.localPath = localPath;
+                        console.log(`💾 已缓存到: ${localPath}`);
+                    }
+                    
                     return;
                 }
                 
