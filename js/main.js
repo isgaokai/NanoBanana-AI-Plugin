@@ -5738,6 +5738,7 @@
                 const title = t('queue.importOptions') || '导入选项';
                 const bodyHTML = `
                     <div style="line-height: 1.8;">
+                        <p style="margin: 0 0 8px 0; font-family: monospace; font-size: 11px; color: #888;"><strong>Task ID:</strong> ${task.id}</p>
                         <p style="margin: 0 0 8px 0;"><strong>${t('queue.type') || '类型'}:</strong> ${isEditTask ? t('tabs.edit') || '编辑' : t('tabs.generate') || '生成'}</p>
                         <p style="margin: 0 0 16px 0;"><strong>${t('generate.prompt') || '提示词'}:</strong> ${task.params.prompt || t('queue.noPrompt') || '无'}</p>
                         <p style="margin: 0 0 8px 0;"><strong>${t('queue.originalLayer') || '原始图层'}:</strong> ${task.originalLayerInfo.layerName}</p>
@@ -5774,7 +5775,8 @@
                 });
             } else {
                 // 没有原始位置信息，只能导入为新图层
-                let message = `${t('queue.type') || '类型'}: ${isEditTask ? t('tabs.edit') || '编辑' : t('tabs.generate') || '生成'}\n`;
+                let message = `Task ID: ${task.id}\n\n`;
+                message += `${t('queue.type') || '类型'}: ${isEditTask ? t('tabs.edit') || '编辑' : t('tabs.generate') || '生成'}\n`;
                 message += `${t('generate.prompt') || '提示词'}: ${task.params.prompt || t('queue.noPrompt') || '无'}\n\n`;
                 message += `${t('queue.confirmImport') || '确认导入到 Photoshop？'}`;
                 
