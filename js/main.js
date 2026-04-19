@@ -3297,7 +3297,7 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(body),
-                signal: AbortSignal.timeout ? AbortSignal.timeout(300000) : undefined  // 300秒(5分钟)超时
+                signal: AbortSignal.timeout ? AbortSignal.timeout(60000) : undefined  // 60秒超时（只用于获取task ID）
             });
             
             const fetchDuration = Date.now() - fetchStartTime;
@@ -3331,8 +3331,8 @@
                     'Network connection failed';
             } else if (fetchError.name === 'AbortError') {
                 errorMessage = config.language === 'zh' ? 
-                    '请求超时（300秒）' : 
-                    'Request timeout (300s)';
+                    '请求超时（60秒）' : 
+                    'Request timeout (60s)';
             }
             
             throw new Error(config.language === 'zh' ? 
@@ -3340,224 +3340,102 @@
                 `Network request failed: ${errorMessage}`);
         }
 
-        // 🔧 对于 /v1/draw/nano-banana 端点，直接读取 JSON 响应（不是 SSE）
-        let responseText = '';
+        // 🔧 新策略：只读取初始 SSE 事件获取 task ID，然后立即进入轮询
+        console.log('📖 Reading initial SSE event to get task ID...');
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let taskId = null;
         const readStartTime = Date.now();
         
-        console.log('📖 Reading response body as JSON...');
-        
         try {
-            responseText = await response.text();
-            const readDuration = Date.now() - readStartTime;
-            console.log('✅ Response body read successfully');
-            console.log('📏 Total response length:', responseText.length, 'chars');
-            console.log('⏱️ Read duration:', readDuration + 'ms');
+            // 只读取前几个 chunk 来获取 task ID
+            let attempts = 0;
+            const maxAttempts = 10; // 最多读取10次
             
-        } catch (readError) {
-            const readDuration = Date.now() - readStartTime;
-            console.error('========================================');
-            console.error('❌ READ ERROR');
-            console.error('⏱️ Duration before error:', readDuration + 'ms');
-            console.error('🔴 Error Type:', readError.name);
-            console.error('💬 Error Message:', readError.message);
-            console.error('📚 Stack:', readError.stack);
-            console.error('========================================');
-            
-            throw new Error(config.language === 'zh' ? 
-                `读取 API 响应失败: ${readError.message}` : 
-                `Failed to read API response: ${readError.message}`);
-        }
-        
-        // 检查响应是否为空
-        if (!responseText || responseText.trim().length === 0) {
-            console.error('❌ Empty response received');
-            throw new Error(config.language === 'zh' ? 
-                'API 返回空响应' : 
-                'API returned empty response');
-        }
-        
-        console.log('========================================');
-        console.log('📄 RAW RESPONSE TEXT ANALYSIS');
-        console.log('📏 Total Length:', responseText.length, 'chars');
-        console.log('🔤 First 200 chars:', responseText.substring(0, 200));
-        console.log('🔤 Last 200 chars:', responseText.substring(Math.max(0, responseText.length - 200)));
-        console.log('🔢 First char code:', responseText.charCodeAt(0), '(' + responseText.charAt(0) + ')');
-        console.log('📝 FULL RESPONSE:');
-        console.log(responseText);
-        console.log('========================================');
-        
-        let data;
-        try {
-            // Try to clean the response text
-            let cleanedText = responseText.trim();
-            
-            // Remove BOM if present
-            if (cleanedText.charCodeAt(0) === 0xFEFF) {
-                cleanedText = cleanedText.substring(1);
-                console.log('Removed BOM character');
-            }
-            
-            // 🔧 检测并处理 SSE 格式
-            if (cleanedText.includes('\ndata:') || cleanedText.startsWith('data:')) {
-                console.log('========================================');
-                console.log('🔄 检测到 SSE 格式响应');
+            while (attempts < maxAttempts && !taskId) {
+                const { done, value } = await reader.read();
+                attempts++;
                 
-                // Split by "data:" and get the last valid event
-                const dataLines = cleanedText.split(/\ndata:\s*/);
-                console.log('📊 SSE 事件总数:', dataLines.length);
+                if (done) {
+                    console.log('⚠️ Stream ended before finding task ID');
+                    break;
+                }
                 
-                let lastValidData = null;
+                buffer += decoder.decode(value, { stream: true });
+                console.log(`📦 Chunk ${attempts} received (${value.length} bytes), buffer length: ${buffer.length}`);
                 
-                // 从后往前找最后一个有效的 JSON
-                for (let i = dataLines.length - 1; i >= 0; i--) {
-                    const line = dataLines[i].trim();
-                    if (line && line.startsWith('{')) {
-                        try {
-                            const eventData = JSON.parse(line);
-                            console.log(`✅ 使用第 ${i + 1} 个事件 (status: ${eventData.status})`);
-                            lastValidData = line;
-                            break;
-                        } catch (e) {
-                            console.warn(`⚠️ 第 ${i + 1} 个事件解析失败:`, line.substring(0, 50));
+                // 尝试从 buffer 中提取 task ID
+                const lines = buffer.split('\n');
+                for (const line of lines) {
+                    if (line.startsWith('data:')) {
+                        const jsonStr = line.substring(5).trim();
+                        if (jsonStr && jsonStr.startsWith('{')) {
+                            try {
+                                const data = JSON.parse(jsonStr);
+                                if (data.id) {
+                                    taskId = data.id;
+                                    console.log('✅ Found task ID:', taskId);
+                                    console.log('📊 Initial status:', data.status);
+                                    console.log('⏱️ Time to get task ID:', Date.now() - readStartTime, 'ms');
+                                    break;
+                                }
+                            } catch (e) {
+                                // 忽略解析错误，继续读取
+                            }
                         }
                     }
                 }
                 
-                if (lastValidData) {
-                    cleanedText = lastValidData;
-                    console.log('✅ SSE 处理完成，使用最后一个有效事件');
-                } else {
-                    throw new Error('未找到有效的 SSE 事件');
-                }
-                
-                console.log('========================================');
+                if (taskId) break;
             }
             
-            console.log('🔍 Parsing JSON...');
-            data = JSON.parse(cleanedText);
-            console.log('✅ JSON parsed successfully:', {
-                id: data.id,
-                status: data.status,
-                code: data.code,
-                hasResults: !!data.results
-            });
-        } catch (parseError) {
-            console.error('========================================');
-            console.error('❌ JSON PARSE ERROR');
-            console.error('💬 Error Message:', parseError.message);
-            console.error('📏 Response Length:', responseText.length);
+            // 立即取消读取，不等待完整的 SSE 流
+            await reader.cancel();
+            console.log('🛑 Stream reading cancelled, entering polling mode');
             
-            // Extract the problematic area
-            const match = parseError.message.match(/position (\d+)/);
-            if (match) {
-                const pos = parseInt(match[1]);
-                const start = Math.max(0, pos - 100);
-                const end = Math.min(responseText.length, pos + 100);
-                const context = responseText.substring(start, end);
-                const charAtPos = responseText.charAt(pos);
-                const charCode = responseText.charCodeAt(pos);
-                
-                console.error('🎯 Error Position:', pos);
-                console.error('🔤 Character at position:', `"${charAtPos}" (charCode: ${charCode})`);
-                console.error('📍 Context (100 chars before and after):');
-                console.error(context);
-            }
-            
-            console.error('📄 Full Response:');
-            console.error(responseText);
-            console.error('========================================');
-            
-            logDebug('error', 'JSON Parse Failed', {
-                error: parseError.message,
-                responseLength: responseText.length,
-                firstChars: responseText.substring(0, 100)
-            });
-            
-            throw new Error(config.language === 'zh' ? 
-                `API 响应解析失败: ${parseError.message}` : 
-                `Failed to parse API response: ${parseError.message}`);
+        } catch (readError) {
+            console.error('❌ SSE read error:', readError.message);
+            // 尝试取消读取
+            try { await reader.cancel(); } catch (e) {}
         }
         
+        if (!taskId) {
+            throw new Error(config.language === 'zh' ? 
+                '无法从响应中获取任务ID' : 
+                'Failed to get task ID from response');
+        }
+        
+        // 🎯 新策略：直接返回 task ID，让调用方进行轮询
         console.log('========================================');
-        console.log('📊 API RESPONSE DATA');
+        console.log('✅ Task ID obtained, skipping SSE stream parsing');
+        console.log('🔄 Caller will poll for results');
+        console.log('========================================');
+        
+        const data = {
+            id: taskId,
+            status: 'processing',
+            code: 200,
+            message: 'Task submitted successfully, use polling to get results'
+        };
+        
+        console.log('========================================');
+        console.log('📊 SIMPLIFIED API RESPONSE');
         console.log('🆔 Task ID:', data.id);
         console.log('📈 Status:', data.status);
-        console.log('🔢 Code:', data.code);
-        console.log('📦 Has Results:', !!data.results);
-        if (data.results && data.results.length > 0) {
-            console.log('🖼️ Result URLs:', data.results.map(r => r.url));
-        }
+        console.log('🔄 Next: Polling will be used to get final results');
         console.log('========================================');
         
-        logDebug('response', 'API Response', {
+        logDebug('response', 'API Response (Simplified)', {
             status: response.status,
             taskId: data.id,
-            taskStatus: data.status,
-            code: data.code,
-            hasResults: !!data.results
+            strategy: 'polling'
         });
 
-        // Check for API-level errors (even if HTTP status is 200)
-        if (data.code && data.code !== 0) {
-            const errorMsg = data.msg || data.message || 'Unknown error';
-            console.error('❌ API Error (code:', data.code + '):', errorMsg);
-            
-            let friendlyError = errorMsg;
-            if (errorMsg.includes('insufficient credits')) {
-                friendlyError = config.language === 'zh' ? 
-                    '积分不足，请充值后再试' : 
-                    'Insufficient credits, please recharge';
-            } else if (errorMsg.includes('invalid api key') || errorMsg.includes('unauthorized')) {
-                friendlyError = config.language === 'zh' ? 
-                    'API Key 无效，请检查' : 
-                    'Invalid API Key';
-            }
-            
-            throw new Error(friendlyError);
-        }
-
-        if (!response.ok) {
-            console.error('❌ HTTP Error:', response.status);
-            throw new Error(`API Error ${response.status}: ${JSON.stringify(data)}`);
-        }
-
-        // 检查是否 SSE 已经返回了完整结果
-        if (data.status === 'succeeded' && data.results && data.results.length > 0) {
-            console.log('========================================');
-            console.log('✅ TASK COMPLETED IN SSE RESPONSE');
-            console.log('🆔 Task ID:', data.id);
-            console.log('🖼️ Image URL:', data.results[0].url);
-            console.log('⚡ No polling needed');
-            console.log('========================================');
-            
-            logDebug('success', 'Task completed immediately', {
-                taskId: data.id,
-                imageUrl: data.results[0].url
-            });
-            
-            return {
-                taskId: data.id,
-                imageUrl: data.results[0].url,
-                needsPolling: false
-            };
-        }
-        
-        // 检查是否失败
-        if (data.status === 'failed') {
-            const error = data.error || data.failure_reason || 'Unknown error';
-            console.error('❌ Task failed:', error);
-            throw new Error(config.language === 'zh' ? 
-                `任务失败: ${error}` : 
-                `Task failed: ${error}`);
-        }
-
-        console.log('🔄 Task submitted, polling required');
-        console.log('🆔 Task ID:', data.id);
-        
-        return {
-            taskId: data.id,
-            needsPolling: true
-        };
+        // 🎯 直接返回 task ID，不检查结果
+        // 调用方会使用轮询API来获取最终结果
+        return data;
     }
 
     async function pollResult(taskId, maxAttempts = 100) {
