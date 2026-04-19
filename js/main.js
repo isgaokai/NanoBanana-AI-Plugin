@@ -4792,26 +4792,17 @@
         }
         
         async processGenerateTask(task) {
-            const apiUrl = `${API_BASE}/v1/images/generations`;
+            console.log(`🚀 调用生成 API: /v1/draw/nano-banana`);
             
-            console.log(`🚀 调用生成 API: ${apiUrl}`);
+            // Call Nano Banana API (same as original implementation)
+            const submitResult = await callNanoBananaAPI(task.params);
             
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${config.apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(task.params)
-            });
+            // Extract task ID
+            const taskId = submitResult.taskId || submitResult.data?.id || submitResult.id || submitResult.task_id;
             
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || `API 错误: ${response.status}`);
+            if (!taskId) {
+                throw new Error('No task ID received from API');
             }
-            
-            const data = await response.json();
-            const taskId = data.id;
             
             console.log(`📋 轮询任务: ${taskId}`);
             
