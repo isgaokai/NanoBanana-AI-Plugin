@@ -190,27 +190,32 @@ function exportImageToFile(mode) {
             var resultPath = tempFile.fsName.replace(/\\/g, '/');
             app.displayDialogs = originalDialogs;
             
-            // 🆕 返回图层位置信息
-            var result = {
-                success: true,
-                filePath: resultPath,
-                width: exportWidth,
-                height: exportHeight,
-                layerIndex: activeLayerIndex,
-                layerName: activeLayerName,
-                hasSelection: hasSelection
-            };
+            // 🆕 返回图层位置信息（手动构建 JSON 字符串，因为 ExtendScript 没有 JSON 对象）
+            var resultJSON = '{"success":true,' +
+                '"filePath":"' + resultPath.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '",' +
+                '"width":' + exportWidth + ',' +
+                '"height":' + exportHeight + ',' +
+                '"layerIndex":' + activeLayerIndex + ',' +
+                '"layerName":"' + String(activeLayerName).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '",' +
+                '"hasSelection":' + hasSelection;
             
             if (hasSelection && bounds) {
-                result.selectionBounds = {
-                    left: Math.round(parseFloat(bounds[0].as("px"))),
-                    top: Math.round(parseFloat(bounds[1].as("px"))),
-                    right: Math.round(parseFloat(bounds[2].as("px"))),
-                    bottom: Math.round(parseFloat(bounds[3].as("px")))
-                };
+                var boundsLeft = Math.round(parseFloat(bounds[0].as("px")));
+                var boundsTop = Math.round(parseFloat(bounds[1].as("px")));
+                var boundsRight = Math.round(parseFloat(bounds[2].as("px")));
+                var boundsBottom = Math.round(parseFloat(bounds[3].as("px")));
+                
+                resultJSON += ',"selectionBounds":{' +
+                    '"left":' + boundsLeft + ',' +
+                    '"top":' + boundsTop + ',' +
+                    '"right":' + boundsRight + ',' +
+                    '"bottom":' + boundsBottom +
+                '}';
             }
             
-            return JSON.stringify(result);
+            resultJSON += '}';
+            
+            return resultJSON;
             
         } catch (exportError) {
             if (dupDoc) {
