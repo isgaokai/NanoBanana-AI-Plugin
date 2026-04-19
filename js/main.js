@@ -4869,32 +4869,24 @@
             // Read image file and convert to base64
             const imageBase64 = await fileToBase64(imageInfo.filePath);
             
-            // Upload to API
-            const uploadData = {
-                image: imageBase64,
+            // Build request body (same format as callNanoBananaAPI)
+            const requestBody = {
                 prompt: task.params.prompt,
-                n: task.params.imageCount || 1,
-                size: task.params.imageSize || '1024x1024'
+                imageSize: task.params.imageSize || '2K',
+                referenceImage: imageBase64  // Base64 image data
             };
             
-            console.log(`🚀 调用编辑 API`);
+            console.log(`🚀 调用编辑 API: /v1/draw/nano-banana`);
             
-            const response = await fetch(`${API_BASE}/v1/images/edits`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${config.apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(uploadData)
-            });
+            // Call Nano Banana API
+            const submitResult = await callNanoBananaAPI(requestBody);
             
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || `API 错误: ${response.status}`);
+            // Extract task ID
+            const taskId = submitResult.taskId || submitResult.data?.id || submitResult.id || submitResult.task_id;
+            
+            if (!taskId) {
+                throw new Error('No task ID received from API');
             }
-            
-            const data = await response.json();
-            const taskId = data.id;
             
             console.log(`📋 轮询任务: ${taskId}`);
             
