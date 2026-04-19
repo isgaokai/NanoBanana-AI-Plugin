@@ -1984,6 +1984,36 @@ body {
     background: rgba(76, 175, 80, 0.85);
 }
 
+.task-item[data-status="completed"] {
+    cursor: pointer;
+}
+
+.task-item[data-status="completed"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.task-item[data-status="completed"]:hover .task-status {
+    background: rgba(76, 175, 80, 1);
+}
+
+.task-item[data-status="completed"]:hover::after {
+    content: '点击导入 / Click to Import';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #4CAF50;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    font-weight: 600;
+}
+
 .task-status.failed {
     background: rgba(244, 67, 54, 0.85);
 }

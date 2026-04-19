@@ -1211,7 +1211,23 @@
             'message.selectSaveLocation': 'Please select save location first',
             'message.noSaveLocation': 'Please set save location first',
             'message.confirmClearCache': 'Are you sure you want to clear all cached images?',
-            'message.clearCacheFailed': 'Failed to clear cache'
+            'message.clearCacheFailed': 'Failed to clear cache',
+            'message.importedToOriginal': 'Imported to original layer position',
+            'message.importedAsNew': 'Imported as new layer',
+            'queue.taskDetails': 'Task Details',
+            'queue.type': 'Type',
+            'queue.status.title': 'Status',
+            'queue.progress': 'Progress',
+            'queue.noPrompt': 'No prompt',
+            'queue.error': 'Error',
+            'queue.importOptions': 'Import Options',
+            'queue.originalLayer': 'Original Layer',
+            'queue.layerIndex': 'Layer Index',
+            'queue.importQuestion': 'Choose import method:',
+            'queue.importToOriginal': 'Replace at original layer position',
+            'queue.importAsNew': 'Import as new layer',
+            'queue.cancel': 'Cancel',
+            'queue.confirmImport': 'Confirm import to Photoshop?'
         },
         zh: {
             'app.title': 'Nano Banana AI',
@@ -1314,7 +1330,23 @@
             'message.selectSaveLocation': '请先选择保存位置',
             'message.noSaveLocation': '请先设置保存位置',
             'message.confirmClearCache': '确定要清理所有缓存图片吗？',
-            'message.clearCacheFailed': '清理缓存失败'
+            'message.clearCacheFailed': '清理缓存失败',
+            'message.importedToOriginal': '已导入到原图层位置',
+            'message.importedAsNew': '已导入为新图层',
+            'queue.taskDetails': '任务详情',
+            'queue.type': '类型',
+            'queue.status.title': '状态',
+            'queue.progress': '进度',
+            'queue.noPrompt': '无',
+            'queue.error': '错误',
+            'queue.importOptions': '导入选项',
+            'queue.originalLayer': '原始图层',
+            'queue.layerIndex': '图层索引',
+            'queue.importQuestion': '选择导入方式：',
+            'queue.importToOriginal': '替换到原图层位置',
+            'queue.importAsNew': '导入为新图层',
+            'queue.cancel': '取消',
+            'queue.confirmImport': '确认导入到 Photoshop？'
         }
     };
 
@@ -5202,6 +5234,16 @@
             
             console.log(`📷 图像信息:`, imageInfo);
             
+            // 🆕 保存原始位置信息到任务中
+            task.originalLayerInfo = {
+                layerIndex: imageInfo.layerIndex,
+                layerName: imageInfo.layerName,
+                hasSelection: imageInfo.hasSelection,
+                selectionBounds: imageInfo.selectionBounds,
+                width: imageInfo.width,
+                height: imageInfo.height
+            };
+            
             // Read image file and convert to base64
             const imageBase64 = await fileToBase64(imageInfo.filePath);
             
@@ -5409,16 +5451,108 @@
             
             console.log('📋 任务详情:', task);
             
-            // Show alert with details
-            alert(`任务详情
+            // 如果任务完成且有结果，显示导入选项
+            if (task.status === 'completed' && task.result) {
+                this.showImportDialog(task);
+            } else {
+                // 显示基本信息
+                alert(`${t('queue.taskDetails') || '任务详情'}
 
 ID: ${task.id}
-类型: ${task.type === 'generate' ? '生成' : '编辑'}
-状态: ${this.getStatusText(task)}
-进度: ${task.progress}%
-提示词: ${task.params.prompt || '无'}
-${task.error ? `错误: ${task.error}` : ''}
-            `);
+${t('queue.type') || '类型'}: ${task.type === 'generate' ? t('tabs.generate') : t('tabs.edit')}
+${t('queue.status.title') || '状态'}: ${this.getStatusText(task)}
+${t('queue.progress') || '进度'}: ${task.progress}%
+${t('generate.prompt') || '提示词'}: ${task.params.prompt || t('queue.noPrompt') || '无'}
+${task.error ? `${t('queue.error') || '错误'}: ${task.error}` : ''}
+                `);
+            }
+        }
+        
+        showImportDialog(task) {
+            const isEditTask = task.type === 'edit';
+            const hasOriginalPosition = isEditTask && task.originalLayerInfo && task.originalLayerInfo.layerIndex >= 0;
+            
+            let message = `${t('queue.importOptions') || '导入选项'}\n\n`;
+            message += `${t('queue.type') || '类型'}: ${isEditTask ? t('tabs.edit') : t('tabs.generate')}\n`;
+            message += `${t('generate.prompt') || '提示词'}: ${task.params.prompt || t('queue.noPrompt') || '无'}\n\n`;
+            
+            if (hasOriginalPosition) {
+                message += `${t('queue.originalLayer') || '原始图层'}: ${task.originalLayerInfo.layerName}\n`;
+                message += `${t('queue.layerIndex') || '图层索引'}: ${task.originalLayerInfo.layerIndex}\n\n`;
+                message += `${t('queue.importQuestion') || '选择导入方式：'}\n`;
+                message += `1 = ${t('queue.importToOriginal') || '替换到原图层位置'}\n`;
+                message += `2 = ${t('queue.importAsNew') || '导入为新图层'}\n`;
+                message += `0 = ${t('queue.cancel') || '取消'}`;
+                
+                const choice = prompt(message, '1');
+                
+                if (choice === '1') {
+                    this.importTaskResult(task, 'original');
+                } else if (choice === '2') {
+                    this.importTaskResult(task, 'new');
+                } else {
+                    console.log('❌ 用户取消导入');
+                }
+            } else {
+                message += `${t('queue.confirmImport') || '确认导入到 Photoshop？'}`;
+                
+                if (confirm(message)) {
+                    this.importTaskResult(task, 'new');
+                }
+            }
+        }
+        
+        async importTaskResult(task, mode) {
+            try {
+                showLoading(
+                    config.language === 'zh' ? '正在导入...' : 'Importing...',
+                    config.language === 'zh' ? '导入到 Photoshop' : 'Importing to Photoshop'
+                );
+                
+                console.log(`📥 导入任务结果: ${task.id}, 模式: ${mode}`);
+                
+                // 优先使用本地缓存
+                const imageUrl = task.result;
+                const localPath = task.localPath || null;
+                
+                if (mode === 'original' && task.originalLayerInfo) {
+                    // 导入到原位置
+                    console.log('📍 导入到原图层位置:', task.originalLayerInfo);
+                    
+                    // 先导入为新图层
+                    const result = await importImage(imageUrl, localPath);
+                    
+                    if (result && result.success) {
+                        // 移动到原位置
+                        await this.moveLayerToPosition(task.originalLayerInfo.layerIndex);
+                        
+                        updateStatus(t('message.importedToOriginal') || '已导入到原图层位置', 'success');
+                    }
+                } else {
+                    // 导入为新图层
+                    await importImage(imageUrl, localPath);
+                    updateStatus(t('message.importedAsNew') || '已导入为新图层', 'success');
+                }
+                
+                hideLoading();
+                
+            } catch (error) {
+                console.error('❌ 导入失败:', error);
+                hideLoading();
+                showError(error.message || '导入失败');
+            }
+        }
+        
+        async moveLayerToPosition(targetIndex) {
+            try {
+                // 使用 JSX 移动图层到指定位置
+                const result = await callJSX('moveLayerToIndex', targetIndex);
+                console.log('📍 图层已移动到索引:', targetIndex, result);
+                return result;
+            } catch (error) {
+                console.error('❌ 移动图层失败:', error);
+                throw error;
+            }
         }
     }
 

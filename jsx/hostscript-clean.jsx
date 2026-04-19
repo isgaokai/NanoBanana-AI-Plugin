@@ -135,12 +135,22 @@ function exportImageToFile(mode) {
         var doc = app.activeDocument;
         var hasSelection = false;
         var bounds = null;
+        var activeLayerIndex = -1;
+        var activeLayerName = "";
         
         try {
             bounds = doc.selection.bounds;
             hasSelection = (bounds[0] !== bounds[2] && bounds[1] !== bounds[3]);
         } catch (e) {
             hasSelection = false;
+        }
+        
+        // 🆕 保存当前图层信息
+        try {
+            activeLayerIndex = doc.activeLayer.itemIndex;
+            activeLayerName = doc.activeLayer.name;
+        } catch (e) {
+            activeLayerIndex = -1;
         }
         
         var tempFile = createTempFile("nanoBanana_" + mode + "_", ".jpg");
@@ -180,7 +190,27 @@ function exportImageToFile(mode) {
             var resultPath = tempFile.fsName.replace(/\\/g, '/');
             app.displayDialogs = originalDialogs;
             
-            return '{"success":true,"filePath":"' + resultPath + '","width":' + exportWidth + ',"height":' + exportHeight + '}';
+            // 🆕 返回图层位置信息
+            var result = {
+                success: true,
+                filePath: resultPath,
+                width: exportWidth,
+                height: exportHeight,
+                layerIndex: activeLayerIndex,
+                layerName: activeLayerName,
+                hasSelection: hasSelection
+            };
+            
+            if (hasSelection && bounds) {
+                result.selectionBounds = {
+                    left: Math.round(parseFloat(bounds[0].as("px"))),
+                    top: Math.round(parseFloat(bounds[1].as("px"))),
+                    right: Math.round(parseFloat(bounds[2].as("px"))),
+                    bottom: Math.round(parseFloat(bounds[3].as("px")))
+                };
+            }
+            
+            return JSON.stringify(result);
             
         } catch (exportError) {
             if (dupDoc) {
@@ -193,6 +223,49 @@ function exportImageToFile(mode) {
         
     } catch (e) {
         app.displayDialogs = originalDialogs;
+        return '{"error":"' + String(e).replace(/"/g, '') + '"}';
+    }
+}
+
+// ========== Move Layer to Index ==========
+function moveLayerToIndex(targetIndex) {
+    try {
+        if (!app.documents.length) {
+            return '{"error":"No document open"}';
+        }
+        
+        var doc = app.activeDocument;
+        var currentLayer = doc.activeLayer;
+        
+        // 验证目标索引
+        if (targetIndex < 0 || targetIndex > doc.layers.length) {
+            return '{"error":"Invalid layer index"}';
+        }
+        
+        // 移动到目标位置
+        try {
+            // 如果目标索引是当前位置，不需要移动
+            if (currentLayer.itemIndex === targetIndex) {
+                return '{"success":true,"message":"Layer already at target position"}';
+            }
+            
+            // 使用 move 方法移动图层
+            if (targetIndex === 0) {
+                // 移动到顶部
+                currentLayer.move(doc, ElementPlacement.PLACEATBEGINNING);
+            } else {
+                // 移动到指定位置
+                var targetLayer = doc.layers[targetIndex];
+                currentLayer.move(targetLayer, ElementPlacement.PLACEAFTER);
+            }
+            
+            return '{"success":true,"layerIndex":' + currentLayer.itemIndex + '}';
+            
+        } catch (moveError) {
+            return '{"error":"Failed to move layer: ' + String(moveError).replace(/"/g, '') + '"}';
+        }
+        
+    } catch (e) {
         return '{"error":"' + String(e).replace(/"/g, '') + '"}';
     }
 }
