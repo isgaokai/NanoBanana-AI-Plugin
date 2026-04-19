@@ -1490,7 +1490,7 @@
                     }
                 } catch (error) {
                     console.error(`Translation update failed for key "${key}":`, error, el);
-                    alert('错误: ' + error.message);  // 显示详细错误
+                    customAlert('错误: ' + error.message);  // 显示详细错误
                 }
             });
 
@@ -1527,7 +1527,7 @@
             console.log('Translation update completed');
         } catch (error) {
             console.error('Fatal error in updateTranslations:', error);
-            alert('翻译更新失败: ' + error.message);
+            customAlert('翻译更新失败: ' + error.message);
         }
     }
 
@@ -1749,7 +1749,7 @@
         // 检查 CEP 环境
         if (!window.cep || !window.cep.fs) {
             console.error('❌ CEP File System 不可用');
-            alert('文件系统 API 不可用，请确保在 Photoshop CEP 环境中运行');
+            customAlert('文件系统 API 不可用，请确保在 Photoshop CEP 环境中运行');
             return;
         }
         
@@ -1812,7 +1812,7 @@
             
             // Show success message
             console.log('✅ 显示成功消息');
-            alert((t('message.saveLocationUpdated') || '保存位置已更新') + '\n\n' + selectedPath);
+            customAlert((t('message.saveLocationUpdated') || '保存位置已更新') + '\n\n' + selectedPath);
         });
     };
     
@@ -1929,8 +1929,9 @@
         
         if (config.autoSaveImages && !config.saveLocationPath) {
             // Prompt user to select location
-            setTimeout(() => {
-                if (confirm(t('message.selectSaveLocation') || '请先选择保存位置')) {
+            setTimeout(async () => {
+                const result = await customConfirm(t('message.selectSaveLocation') || '请先选择保存位置');
+                if (result) {
                     selectSaveLocation();
                 }
             }, 100);
@@ -1961,13 +1962,14 @@
     /**
      * Clear image cache
      */
-    window.clearImageCache = function() {
+    window.clearImageCache = async function() {
         if (!config.saveLocationPath) {
             updateStatus(t('message.noSaveLocation') || '请先设置保存位置', 'warning');
             return;
         }
         
-        if (!confirm(t('message.confirmClearCache') || '确定要清理所有缓存图片吗？')) {
+        const confirmed = await customConfirm(t('message.confirmClearCache') || '确定要清理所有缓存图片吗？');
+        if (!confirmed) {
             return;
         }
         
@@ -2168,7 +2170,7 @@
                 formatted += '\n❌ 没有找到可用的工具名称';
             }
             
-            alert(formatted);
+            customAlert(formatted);
             console.log(formatted);
             
             hideLoading();
@@ -2802,13 +2804,14 @@
     }
 
     function showError(message) {
-        alert((config.language === 'zh' ? '错误: ' : 'Error: ') + message);
+        customAlert(message, config.language === 'zh' ? '错误' : 'Error');
         console.error(message);
         updateStatus((config.language === 'zh' ? '错误: ' : 'Error: ') + message, 'error');
         logDebug('error', 'Error', message);
     }
 
     // ========== Custom Modal Dialog ==========
+    // 🎨 自定义模态对话框系统
     window.showCustomModal = function(title, bodyHTML, footerHTML = null) {
         const modal = document.getElementById('customModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -2853,6 +2856,90 @@
         if (modal) {
             modal.style.display = 'none';
         }
+    };
+    
+    // 📢 自定义 Alert 对话框
+    window.customAlert = function(message, title = null) {
+        const displayTitle = title || (config.language === 'zh' ? '提示' : 'Alert');
+        const bodyHTML = `<p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${message}</p>`;
+        const footerHTML = `<button class="btn-primary" onclick="closeCustomModal()" style="min-width: 100px;">${config.language === 'zh' ? '确定' : 'OK'}</button>`;
+        showCustomModal(displayTitle, bodyHTML, footerHTML);
+    };
+    
+    // ❓ 自定义 Confirm 对话框（返回 Promise）
+    window.customConfirm = function(message, title = null) {
+        return new Promise((resolve) => {
+            const displayTitle = title || (config.language === 'zh' ? '确认' : 'Confirm');
+            const bodyHTML = `<p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${message}</p>`;
+            const footerHTML = `
+                <button class="btn-secondary" onclick="window.__customConfirmResolve(false)" style="min-width: 100px;">
+                    ${config.language === 'zh' ? '取消' : 'Cancel'}
+                </button>
+                <button class="btn-primary" onclick="window.__customConfirmResolve(true)" style="min-width: 100px;">
+                    ${config.language === 'zh' ? '确定' : 'OK'}
+                </button>
+            `;
+            
+            window.__customConfirmResolve = function(result) {
+                closeCustomModal();
+                delete window.__customConfirmResolve;
+                resolve(result);
+            };
+            
+            showCustomModal(displayTitle, bodyHTML, footerHTML);
+        });
+    };
+    
+    // ✏️ 自定义 Prompt 对话框（返回 Promise）
+    window.customPrompt = function(message, defaultValue = '', title = null) {
+        return new Promise((resolve) => {
+            const displayTitle = title || (config.language === 'zh' ? '输入' : 'Input');
+            const inputId = 'customPromptInput_' + Date.now();
+            const bodyHTML = `
+                <p style="margin: 0 0 12px 0; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+                <input type="text" id="${inputId}" class="textarea" value="${defaultValue}" 
+                       style="width: 100%; padding: 8px; box-sizing: border-box; font-size: 14px;" />
+            `;
+            const footerHTML = `
+                <button class="btn-secondary" onclick="window.__customPromptResolve(null)" style="min-width: 100px;">
+                    ${config.language === 'zh' ? '取消' : 'Cancel'}
+                </button>
+                <button class="btn-primary" onclick="window.__customPromptSubmit('${inputId}')" style="min-width: 100px;">
+                    ${config.language === 'zh' ? '确定' : 'OK'}
+                </button>
+            `;
+            
+            window.__customPromptResolve = function(result) {
+                closeCustomModal();
+                delete window.__customPromptResolve;
+                delete window.__customPromptSubmit;
+                resolve(result);
+            };
+            
+            window.__customPromptSubmit = function(inputId) {
+                const input = document.getElementById(inputId);
+                const value = input ? input.value : null;
+                window.__customPromptResolve(value);
+            };
+            
+            showCustomModal(displayTitle, bodyHTML, footerHTML);
+            
+            // 自动聚焦输入框
+            setTimeout(() => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.focus();
+                    input.select();
+                    
+                    // 回车提交
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            window.__customPromptSubmit(inputId);
+                        }
+                    });
+                }
+            }, 100);
+        });
     };
 
     function showSuccess(message) {
@@ -4742,10 +4829,14 @@
     };
     
     // 恢复默认预设
-    window.resetToDefaultPresets = function() {
-        if (!confirm(config.language === 'zh' ? 
+    window.resetToDefaultPresets = async function() {
+        const confirmed = await customConfirm(
+            config.language === 'zh' ? 
             '确定要恢复默认预设吗？当前自定义预设将被清除。' : 
-            'Reset to default presets? Custom presets will be cleared.')) {
+            'Reset to default presets? Custom presets will be cleared.'
+        );
+        
+        if (!confirmed) {
             return;
         }
         
@@ -4840,10 +4931,14 @@
     };
     
     // 清空历史记录
-    window.clearHistory = function() {
-        if (!confirm(config.language === 'zh' ? 
+    window.clearHistory = async function() {
+        const confirmed = await customConfirm(
+            config.language === 'zh' ? 
             '确定要清空所有历史记录吗？' : 
-            'Clear all history records?')) {
+            'Clear all history records?'
+        );
+        
+        if (!confirmed) {
             return;
         }
         
@@ -5634,35 +5729,57 @@
             }
         }
         
-        showImportDialog(task) {
+        async showImportDialog(task) {
             const isEditTask = task.type === 'edit';
             const hasOriginalPosition = isEditTask && task.originalLayerInfo && task.originalLayerInfo.layerIndex >= 0;
             
-            let message = `${t('queue.importOptions') || '导入选项'}\n\n`;
-            message += `${t('queue.type') || '类型'}: ${isEditTask ? t('tabs.edit') : t('tabs.generate')}\n`;
-            message += `${t('generate.prompt') || '提示词'}: ${task.params.prompt || t('queue.noPrompt') || '无'}\n\n`;
-            
             if (hasOriginalPosition) {
-                message += `${t('queue.originalLayer') || '原始图层'}: ${task.originalLayerInfo.layerName}\n`;
-                message += `${t('queue.layerIndex') || '图层索引'}: ${task.originalLayerInfo.layerIndex}\n\n`;
-                message += `${t('queue.importQuestion') || '选择导入方式：'}\n`;
-                message += `1 = ${t('queue.importToOriginal') || '替换到原图层位置'}\n`;
-                message += `2 = ${t('queue.importAsNew') || '导入为新图层'}\n`;
-                message += `0 = ${t('queue.cancel') || '取消'}`;
+                // 有原始位置信息，显示自定义选择对话框
+                const title = t('queue.importOptions') || '导入选项';
+                const bodyHTML = `
+                    <div style="line-height: 1.8;">
+                        <p style="margin: 0 0 8px 0;"><strong>${t('queue.type') || '类型'}:</strong> ${isEditTask ? t('tabs.edit') || '编辑' : t('tabs.generate') || '生成'}</p>
+                        <p style="margin: 0 0 16px 0;"><strong>${t('generate.prompt') || '提示词'}:</strong> ${task.params.prompt || t('queue.noPrompt') || '无'}</p>
+                        <p style="margin: 0 0 8px 0;"><strong>${t('queue.originalLayer') || '原始图层'}:</strong> ${task.originalLayerInfo.layerName}</p>
+                        <p style="margin: 0 0 16px 0;"><strong>${t('queue.layerIndex') || '图层索引'}:</strong> ${task.originalLayerInfo.layerIndex}</p>
+                        <p style="margin: 0; font-weight: 500; color: #4a9eff;">${t('queue.importQuestion') || '请选择导入方式：'}</p>
+                    </div>
+                `;
+                const footerHTML = `
+                    <button class="btn-secondary" onclick="window.__importDialogResolve(null)" style="min-width: 120px;">
+                        ${t('queue.cancel') || '取消'}
+                    </button>
+                    <button class="btn-primary" onclick="window.__importDialogResolve('new')" style="min-width: 120px;">
+                        ${t('queue.importAsNew') || '导入为新图层'}
+                    </button>
+                    <button class="btn-primary" onclick="window.__importDialogResolve('original')" style="min-width: 120px; background: #4a9eff;">
+                        ${t('queue.importToOriginal') || '替换到原位置'}
+                    </button>
+                `;
                 
-                const choice = prompt(message, '1');
-                
-                if (choice === '1') {
-                    this.importTaskResult(task, 'original');
-                } else if (choice === '2') {
-                    this.importTaskResult(task, 'new');
-                } else {
-                    console.log('❌ 用户取消导入');
-                }
+                return new Promise((resolve) => {
+                    window.__importDialogResolve = (mode) => {
+                        closeCustomModal();
+                        delete window.__importDialogResolve;
+                        
+                        if (mode) {
+                            this.importTaskResult(task, mode);
+                        } else {
+                            console.log('❌ 用户取消导入');
+                        }
+                        resolve();
+                    };
+                    
+                    showCustomModal(title, bodyHTML, footerHTML);
+                });
             } else {
+                // 没有原始位置信息，只能导入为新图层
+                let message = `${t('queue.type') || '类型'}: ${isEditTask ? t('tabs.edit') || '编辑' : t('tabs.generate') || '生成'}\n`;
+                message += `${t('generate.prompt') || '提示词'}: ${task.params.prompt || t('queue.noPrompt') || '无'}\n\n`;
                 message += `${t('queue.confirmImport') || '确认导入到 Photoshop？'}`;
                 
-                if (confirm(message)) {
+                const confirmed = await customConfirm(message, t('queue.importOptions') || '导入选项');
+                if (confirmed) {
                     this.importTaskResult(task, 'new');
                 }
             }
