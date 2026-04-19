@@ -2838,15 +2838,16 @@
         };
     }
 
-    async function pollResult(taskId, maxAttempts = 60) {
+    async function pollResult(taskId, maxAttempts = 100) {
         console.log('========================================');
         console.log('🔄 开始轮询任务结果');
         console.log('🆔 Task ID:', taskId);
         console.log('🔢 最大尝试次数:', maxAttempts);
+        console.log('⏱️ 轮询间隔: 3秒');
         console.log('========================================');
         
         for (let i = 0; i < maxAttempts; i++) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 3000));
             
             const url = `${API_BASE}/v1/draw/result`;
             
