@@ -1654,48 +1654,90 @@
      * Select save location folder
      */
     window.selectSaveLocation = function() {
+        console.log('========================================');
+        console.log('📂 开始选择保存位置');
+        console.log('========================================');
+        
+        // 检查 CEP 环境
+        if (!window.cep || !window.cep.fs) {
+            console.error('❌ CEP File System 不可用');
+            alert('文件系统 API 不可用，请确保在 Photoshop CEP 环境中运行');
+            return;
+        }
+        
         const csInterface = new CSInterface();
         
         // Use CEP system path as default
         const defaultPath = csInterface.getSystemPath(SystemPath.USER_DATA);
         const suggestedPath = config.saveLocationPath || defaultPath + '/NanoBananaAI/images';
         
-        console.log('📂 打开文件夹选择对话框，默认路径:', suggestedPath);
+        console.log('📂 默认路径:', defaultPath);
+        console.log('📂 建议路径:', suggestedPath);
+        console.log('📂 当前配置:', config.saveLocationPath);
         
         // Open folder selection dialog
-        window.cep.fs.showOpenDialog(false, true, 'Select Save Location', suggestedPath, null, (result) => {
-            console.log('📂 文件夹选择结果:', result);
-            
-            if (result.err === window.cep.fs.NO_ERROR && result.data && result.data.length > 0) {
-                const selectedPath = result.data[0];
-                console.log('✅ 已选择文件夹:', selectedPath);
-                
-                // Update config
-                config.saveLocationPath = selectedPath;
-                saveConfig();
-                
-                // Update UI
-                const inputElement = document.getElementById('saveLocationPath');
-                if (inputElement) {
-                    inputElement.value = selectedPath;
-                    inputElement.title = selectedPath;  // 鼠标悬停显示完整路径
-                    console.log('✅ 输入框已更新');
-                } else {
-                    console.error('❌ 未找到 saveLocationPath 输入框');
+        console.log('📂 调用 showOpenDialog...');
+        
+        try {
+            window.cep.fs.showOpenDialog(
+                false,  // allowMultipleSelection
+                true,   // chooseDirectory
+                'Select Save Location / 选择保存位置', 
+                suggestedPath, 
+                null,   // fileTypes
+                function(result) {
+                    console.log('========================================');
+                    console.log('📂 文件夹选择回调触发');
+                    console.log('📂 result:', result);
+                    console.log('📂 result.err:', result.err);
+                    console.log('📂 result.data:', result.data);
+                    console.log('📂 NO_ERROR 常量:', window.cep.fs.NO_ERROR);
+                    console.log('========================================');
+                    
+                    if (result.err === window.cep.fs.NO_ERROR && result.data && result.data.length > 0) {
+                        const selectedPath = result.data[0];
+                        console.log('✅ 已选择文件夹:', selectedPath);
+                        
+                        // Update config
+                        config.saveLocationPath = selectedPath;
+                        saveConfig();
+                        console.log('✅ 配置已保存');
+                        
+                        // Update UI
+                        const inputElement = document.getElementById('saveLocationPath');
+                        if (inputElement) {
+                            inputElement.value = selectedPath;
+                            inputElement.title = selectedPath;
+                            inputElement.placeholder = selectedPath;  // 也更新 placeholder
+                            console.log('✅ 输入框已更新，新值:', inputElement.value);
+                        } else {
+                            console.error('❌ 未找到 saveLocationPath 输入框');
+                        }
+                        
+                        // Create directory if not exists
+                        createCacheDirectory(selectedPath);
+                        
+                        // Update cache info
+                        setTimeout(() => {
+                            updateCacheInfo();
+                        }, 500);
+                        
+                        // Show success message
+                        console.log('✅ 显示成功消息');
+                        alert(t('message.saveLocationUpdated') || '保存位置已更新: ' + selectedPath);
+                    } else {
+                        console.log('⚠️ 用户取消选择或发生错误');
+                        console.log('⚠️ err:', result.err);
+                    }
                 }
-                
-                // Create directory if not exists
-                createCacheDirectory(selectedPath);
-                
-                // Update cache info
-                updateCacheInfo();
-                
-                // Show success message
-                updateStatus(t('message.saveLocationUpdated') || '保存位置已更新', 'success');
-            } else {
-                console.log('⚠️ 用户取消或选择失败');
-            }
-        });
+            );
+            
+            console.log('✅ showOpenDialog 调用完成（等待用户选择）');
+            
+        } catch (error) {
+            console.error('❌ showOpenDialog 调用失败:', error);
+            alert('打开文件夹选择对话框失败: ' + error.message);
+        }
     };
     
     /**
