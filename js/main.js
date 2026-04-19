@@ -2690,6 +2690,53 @@
         logDebug('error', 'Error', message);
     }
 
+    // ========== Custom Modal Dialog ==========
+    window.showCustomModal = function(title, bodyHTML, footerHTML = null) {
+        const modal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalFooter = document.getElementById('modalFooter');
+        
+        if (!modal || !modalTitle || !modalBody || !modalFooter) {
+            console.error('Modal elements not found');
+            return;
+        }
+        
+        modalTitle.textContent = title;
+        modalBody.innerHTML = bodyHTML;
+        
+        if (footerHTML) {
+            modalFooter.innerHTML = footerHTML;
+        } else {
+            modalFooter.innerHTML = `<button class="btn-secondary" onclick="closeCustomModal()">${config.language === 'zh' ? '关闭' : 'Close'}</button>`;
+        }
+        
+        modal.style.display = 'flex';
+        
+        // Click outside to close
+        modal.onclick = function(e) {
+            if (e.target === modal) {
+                closeCustomModal();
+            }
+        };
+        
+        // ESC key to close
+        const escHandler = function(e) {
+            if (e.key === 'Escape') {
+                closeCustomModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+    };
+
+    window.closeCustomModal = function() {
+        const modal = document.getElementById('customModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
     function showSuccess(message) {
         updateStatus(message, 'success');
         setTimeout(() => updateStatus(t('status.ready'), 'success'), 3000);
@@ -5376,16 +5423,62 @@
             if (task.status === 'completed' && task.result) {
                 this.showImportDialog(task);
             } else {
-                // 显示基本信息
-                alert(`${t('queue.taskDetails') || '任务详情'}
-
-ID: ${task.id}
-${t('queue.type') || '类型'}: ${task.type === 'generate' ? t('tabs.generate') : t('tabs.edit')}
-${t('queue.status.title') || '状态'}: ${this.getStatusText(task)}
-${t('queue.progress') || '进度'}: ${task.progress}%
-${t('generate.prompt') || '提示词'}: ${task.params.prompt || t('queue.noPrompt') || '无'}
-${task.error ? `${t('queue.error') || '错误'}: ${task.error}` : ''}
-                `);
+                // 使用自定义模态框显示详细信息
+                const typeText = task.type === 'generate' ? t('tabs.generate') : t('tabs.edit');
+                const statusText = this.getStatusText(task);
+                const promptText = task.params.prompt || t('queue.noPrompt') || '无';
+                
+                let bodyHTML = `
+                    <div class="modal-info-row">
+                        <div class="modal-info-label">ID:</div>
+                        <div class="modal-info-value" style="font-family: monospace; font-size: 11px;">${task.id}</div>
+                    </div>
+                    <div class="modal-info-row">
+                        <div class="modal-info-label">${t('queue.type') || '类型'}:</div>
+                        <div class="modal-info-value">${typeText}</div>
+                    </div>
+                    <div class="modal-info-row">
+                        <div class="modal-info-label">${t('queue.status.title') || '状态'}:</div>
+                        <div class="modal-info-value ${task.status}">${statusText}</div>
+                    </div>
+                    <div class="modal-info-row">
+                        <div class="modal-info-label">${t('queue.progress') || '进度'}:</div>
+                        <div class="modal-info-value">${task.progress}%</div>
+                    </div>
+                    <div class="modal-info-row">
+                        <div class="modal-info-label">${t('generate.prompt') || '提示词'}:</div>
+                        <div class="modal-info-value" style="white-space: pre-wrap;">${promptText}</div>
+                    </div>
+                `;
+                
+                if (task.error) {
+                    bodyHTML += `
+                        <div class="modal-info-row">
+                            <div class="modal-info-label">${t('queue.error') || '错误'}:</div>
+                            <div class="modal-info-value error">${task.error}</div>
+                        </div>
+                    `;
+                }
+                
+                if (task.params.model) {
+                    bodyHTML += `
+                        <div class="modal-info-row">
+                            <div class="modal-info-label">模型:</div>
+                            <div class="modal-info-value">${task.params.model}</div>
+                        </div>
+                    `;
+                }
+                
+                if (task.params.imageSize) {
+                    bodyHTML += `
+                        <div class="modal-info-row">
+                            <div class="modal-info-label">尺寸:</div>
+                            <div class="modal-info-value">${task.params.imageSize}</div>
+                        </div>
+                    `;
+                }
+                
+                showCustomModal(t('queue.taskDetails') || '任务详情', bodyHTML);
             }
         }
         

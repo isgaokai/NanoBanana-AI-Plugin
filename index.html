@@ -1168,6 +1168,27 @@
             </div>
         </div>
 
+        <!-- Custom Modal Dialog -->
+        <div class="modal-overlay" id="customModal" style="display: none;">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modalTitle">标题</h3>
+                    <button class="modal-close" onclick="closeCustomModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    内容
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                    <button class="btn-secondary" onclick="closeCustomModal()">关闭</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script src="js/libs/gsap.min.js"></script>
