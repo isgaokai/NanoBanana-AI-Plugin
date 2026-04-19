@@ -4661,8 +4661,19 @@
             
             const taskIndex = this.tasks.indexOf(task) + 1;
             
+            // Create placeholder if no thumbnail
+            const thumbnailHtml = task.thumbnail 
+                ? `<img src="${task.thumbnail}" alt="Task ${taskIndex}" />`
+                : `<div class="task-placeholder">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                </div>`;
+            
             item.innerHTML = `
-                <img src="${task.thumbnail || 'icons/placeholder.png'}" alt="Task ${taskIndex}" />
+                ${thumbnailHtml}
                 <div class="task-progress" style="width: 0%"></div>
                 <div class="task-type-badge ${task.type}">${task.type === 'generate' ? t('tabs.generate') : t('tabs.edit')}</div>
                 <div class="task-number">${taskIndex}</div>
@@ -4856,7 +4867,7 @@
             console.log(`📷 图像信息:`, imageInfo);
             
             // Read image file and convert to base64
-            const imageBase64 = await readImageFile(imageInfo.filePath);
+            const imageBase64 = await fileToBase64(imageInfo.filePath);
             
             // Upload to API
             const uploadData = {
