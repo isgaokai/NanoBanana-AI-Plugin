@@ -1660,19 +1660,40 @@
         const defaultPath = csInterface.getSystemPath(SystemPath.USER_DATA);
         const suggestedPath = config.saveLocationPath || defaultPath + '/NanoBananaAI/images';
         
+        console.log('📂 打开文件夹选择对话框，默认路径:', suggestedPath);
+        
         // Open folder selection dialog
         window.cep.fs.showOpenDialog(false, true, 'Select Save Location', suggestedPath, null, (result) => {
+            console.log('📂 文件夹选择结果:', result);
+            
             if (result.err === window.cep.fs.NO_ERROR && result.data && result.data.length > 0) {
                 const selectedPath = result.data[0];
+                console.log('✅ 已选择文件夹:', selectedPath);
+                
+                // Update config
                 config.saveLocationPath = selectedPath;
-                document.getElementById('saveLocationPath').value = selectedPath;
                 saveConfig();
+                
+                // Update UI
+                const inputElement = document.getElementById('saveLocationPath');
+                if (inputElement) {
+                    inputElement.value = selectedPath;
+                    inputElement.title = selectedPath;  // 鼠标悬停显示完整路径
+                    console.log('✅ 输入框已更新');
+                } else {
+                    console.error('❌ 未找到 saveLocationPath 输入框');
+                }
                 
                 // Create directory if not exists
                 createCacheDirectory(selectedPath);
                 
-                updateStatus(t('message.saveLocationUpdated') || '保存位置已更新', 'success');
+                // Update cache info
                 updateCacheInfo();
+                
+                // Show success message
+                updateStatus(t('message.saveLocationUpdated') || '保存位置已更新', 'success');
+            } else {
+                console.log('⚠️ 用户取消或选择失败');
             }
         });
     };
