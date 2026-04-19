@@ -2628,7 +2628,7 @@
     }
 
     // ========== API Calls ==========
-    async function callNanoBananaAPI(body) {
+    async function callNanoBananaAPI(body, showProgress = true) {
         if (!config.apiKey) {
             throw new Error(t('message.enterApiKey'));
         }
@@ -2845,13 +2845,15 @@
                             if (eventData.progress !== undefined && eventData.progress > maxProgress) {
                                 maxProgress = eventData.progress;
                                 
-                                // Show real-time progress
-                                showLoading(
-                                    config.language === 'zh' ? `提交中 ${maxProgress}%` : `Submitting ${maxProgress}%`,
-                                    config.language === 'zh' ? 
-                                        `${eventData.status === 'running' ? '正在处理...' : '处理中'}` :
-                                        `${eventData.status === 'running' ? 'Processing...' : 'Processing'}`
-                                );
+                                // Show real-time progress (only if showProgress is true)
+                                if (showProgress) {
+                                    showLoading(
+                                        config.language === 'zh' ? `提交中 ${maxProgress}%` : `Submitting ${maxProgress}%`,
+                                        config.language === 'zh' ? 
+                                            `${eventData.status === 'running' ? '正在处理...' : '处理中'}` :
+                                            `${eventData.status === 'running' ? 'Processing...' : 'Processing'}`
+                                    );
+                                }
                             }
                             
                             // Keep the last event
@@ -4767,12 +4769,9 @@
                 
                 // Add to history
                 if (pendingTask.result) {
-                    addToHistory({
-                        url: pendingTask.result,
-                        prompt: pendingTask.params.prompt,
-                        model: pendingTask.params.model || 'unknown',
-                        timestamp: Date.now(),
-                        type: pendingTask.type
+                    addHistoryRecord(pendingTask.type, pendingTask.params, {
+                        imageUrl: pendingTask.result,
+                        timestamp: new Date().toISOString()
                     });
                 }
                 
@@ -4794,8 +4793,8 @@
         async processGenerateTask(task) {
             console.log(`🚀 调用生成 API: /v1/draw/nano-banana`);
             
-            // Call Nano Banana API (same as original implementation)
-            const submitResult = await callNanoBananaAPI(task.params);
+            // Call Nano Banana API (disable loading overlay for queue mode)
+            const submitResult = await callNanoBananaAPI(task.params, false);
             
             // Extract task ID
             const taskId = submitResult.taskId || submitResult.data?.id || submitResult.id || submitResult.task_id;
@@ -4870,8 +4869,8 @@
             
             console.log(`🚀 调用编辑 API: /v1/draw/nano-banana`);
             
-            // Call Nano Banana API
-            const submitResult = await callNanoBananaAPI(requestBody);
+            // Call Nano Banana API (disable loading overlay for queue mode)
+            const submitResult = await callNanoBananaAPI(requestBody, false);
             
             // Extract task ID
             const taskId = submitResult.taskId || submitResult.data?.id || submitResult.id || submitResult.task_id;
