@@ -5154,28 +5154,45 @@
         
         updateTask(taskId, updates) {
             const task = this.tasks.find(t => t.id === taskId);
-            if (!task) return;
+            if (!task) {
+                console.warn(`⚠️ Task not found: ${taskId}`);
+                return;
+            }
             
             Object.assign(task, updates);
             
             const item = this.container.querySelector(`[data-task-id="${taskId}"]`);
-            if (!item) return;
+            if (!item) {
+                console.warn(`⚠️ Task item not found in DOM: ${taskId}`);
+                return;
+            }
             
             if (updates.thumbnail) {
                 const img = item.querySelector('img');
-                img.src = updates.thumbnail;
+                if (img) {
+                    img.src = updates.thumbnail;
+                    console.log(`🖼️ Updated thumbnail for ${taskId}`);
+                }
             }
             
             if (updates.progress !== undefined) {
                 const progressBar = item.querySelector('.task-progress');
-                progressBar.style.width = `${updates.progress}%`;
+                if (progressBar) {
+                    progressBar.style.width = `${updates.progress}%`;
+                    console.log(`📊 Updated progress for ${taskId}: ${updates.progress}%`);
+                } else {
+                    console.warn(`⚠️ Progress bar not found for ${taskId}`);
+                }
             }
             
             if (updates.status) {
                 item.dataset.status = updates.status;
                 const statusEl = item.querySelector('.task-status');
-                statusEl.className = `task-status ${updates.status}`;
-                statusEl.textContent = this.getStatusText(task);
+                if (statusEl) {
+                    statusEl.className = `task-status ${updates.status}`;
+                    statusEl.textContent = this.getStatusText(task);
+                    console.log(`📝 Updated status for ${taskId}: ${updates.status}`);
+                }
             }
         }
         
