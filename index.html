@@ -171,6 +171,28 @@
                         <span style="font-size: 11px; margin-left: 4px;">清理</span>
                     </button>
                 </div>
+                
+                <!-- 数据备份/恢复 -->
+                <div style="display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <button class="btn-icon" onclick="saveDataToFiles()" title="保存所有数据到文件" 
+                            style="flex: 1; padding: 8px; background: rgba(33, 150, 243, 0.15); border: 1px solid rgba(33, 150, 243, 0.3);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span style="font-size: 11px; margin-left: 4px;">备份数据</span>
+                    </button>
+                    <button class="btn-icon" onclick="loadDataFromFiles()" title="从文件恢复数据" 
+                            style="flex: 1; padding: 8px; background: rgba(156, 39, 176, 0.15); border: 1px solid rgba(156, 39, 176, 0.3);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span style="font-size: 11px; margin-left: 4px;">恢复数据</span>
+                    </button>
+                </div>
             </div>
             
             <!-- History Manager -->

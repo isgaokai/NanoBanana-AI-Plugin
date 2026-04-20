@@ -2005,6 +2005,180 @@
         }
     };
     
+    // ========== Data Backup/Restore System ==========
+    
+    /**
+     * Save all data to local files
+     */
+    window.saveDataToFiles = async function() {
+        if (!config.saveLocationPath) {
+            updateStatus(t('message.noSaveLocation') || '请先设置保存位置', 'warning');
+            return;
+        }
+        
+        try {
+            const fs = window.cep.fs;
+            const dataPath = config.saveLocationPath + '/data';
+            
+            // Create data directory
+            if (fs.stat(dataPath).err !== 0) {
+                fs.makedir(dataPath);
+            }
+            
+            // Prepare data to save
+            const dataToSave = {
+                config: config,
+                history: historyRecords,
+                tasks: JSON.parse(localStorage.getItem('taskQueueData') || '{"tasks":[],"taskIdCounter":0}'),
+                customPresets: JSON.parse(localStorage.getItem('customPresetGroups') || '{}'),
+                uiSettings: {
+                    thumbnailSize: localStorage.getItem('historyThumbnailSize') || 'medium',
+                    taskQueueHeight: localStorage.getItem('taskQueueHeight') || '200px'
+                },
+                timestamp: new Date().toISOString(),
+                version: '1.20.0'
+            };
+            
+            // Save each data file
+            const files = [
+                { name: 'config.json', data: { config: dataToSave.config, version: dataToSave.version } },
+                { name: 'history.json', data: { history: dataToSave.history, timestamp: dataToSave.timestamp } },
+                { name: 'tasks.json', data: dataToSave.tasks },
+                { name: 'presets.json', data: dataToSave.customPresets },
+                { name: 'ui-settings.json', data: dataToSave.uiSettings }
+            ];
+            
+            let savedCount = 0;
+            files.forEach(file => {
+                const filePath = dataPath + '/' + file.name;
+                const content = JSON.stringify(file.data, null, 2);
+                const result = fs.writeFile(filePath, content, 'utf8');
+                if (result.err === 0) {
+                    savedCount++;
+                    console.log(`✅ 已保存: ${file.name}`);
+                } else {
+                    console.error(`❌ 保存失败: ${file.name}`, result.err);
+                }
+            });
+            
+            // Also save a complete backup
+            const backupPath = dataPath + '/backup_' + Date.now() + '.json';
+            const completeBackup = JSON.stringify(dataToSave, null, 2);
+            fs.writeFile(backupPath, completeBackup, 'utf8');
+            
+            updateStatus(`数据已保存 (${savedCount}/${files.length} 个文件)`, 'success');
+            console.log(`💾 数据备份完成: ${dataPath}`);
+            
+        } catch (error) {
+            console.error('❌ 保存数据失败:', error);
+            updateStatus('保存数据失败', 'error');
+        }
+    };
+    
+    /**
+     * Load data from local files
+     */
+    window.loadDataFromFiles = async function() {
+        if (!config.saveLocationPath) {
+            updateStatus(t('message.noSaveLocation') || '请先设置保存位置', 'warning');
+            return;
+        }
+        
+        const confirmed = await customConfirm('确定要从文件恢复数据吗？\n当前数据将被覆盖。');
+        if (!confirmed) {
+            return;
+        }
+        
+        try {
+            const fs = window.cep.fs;
+            const dataPath = config.saveLocationPath + '/data';
+            
+            let loadedCount = 0;
+            
+            // Load config
+            const configFile = fs.readFile(dataPath + '/config.json', 'utf8');
+            if (configFile.err === 0) {
+                const configData = JSON.parse(configFile.data);
+                Object.assign(config, configData.config);
+                saveConfig();
+                loadedCount++;
+                console.log('✅ 已加载: config.json');
+            }
+            
+            // Load history
+            const historyFile = fs.readFile(dataPath + '/history.json', 'utf8');
+            if (historyFile.err === 0) {
+                const historyData = JSON.parse(historyFile.data);
+                historyRecords = historyData.history || [];
+                localStorage.setItem('historyRecords', JSON.stringify(historyRecords));
+                renderHistoryGrid();
+                loadedCount++;
+                console.log('✅ 已加载: history.json');
+            }
+            
+            // Load tasks
+            const tasksFile = fs.readFile(dataPath + '/tasks.json', 'utf8');
+            if (tasksFile.err === 0) {
+                const tasksData = JSON.parse(tasksFile.data);
+                localStorage.setItem('taskQueueData', JSON.stringify(tasksData));
+                // Reload task queue
+                taskQueue.loadTasksFromStorage();
+                loadedCount++;
+                console.log('✅ 已加载: tasks.json');
+            }
+            
+            // Load custom presets
+            const presetsFile = fs.readFile(dataPath + '/presets.json', 'utf8');
+            if (presetsFile.err === 0) {
+                const presetsData = JSON.parse(presetsFile.data);
+                localStorage.setItem('customPresetGroups', JSON.stringify(presetsData));
+                loadCustomPresets();
+                loadedCount++;
+                console.log('✅ 已加载: presets.json');
+            }
+            
+            // Load UI settings
+            const uiFile = fs.readFile(dataPath + '/ui-settings.json', 'utf8');
+            if (uiFile.err === 0) {
+                const uiData = JSON.parse(uiFile.data);
+                if (uiData.thumbnailSize) {
+                    localStorage.setItem('historyThumbnailSize', uiData.thumbnailSize);
+                    thumbnailSize = uiData.thumbnailSize;
+                }
+                if (uiData.taskQueueHeight) {
+                    localStorage.setItem('taskQueueHeight', uiData.taskQueueHeight);
+                }
+                loadedCount++;
+                console.log('✅ 已加载: ui-settings.json');
+            }
+            
+            updateStatus(`数据已恢复 (${loadedCount} 个文件)`, 'success');
+            console.log(`📂 数据恢复完成: ${dataPath}`);
+            
+            // Refresh UI
+            await customAlert('数据恢复成功！\n插件将自动刷新。');
+            location.reload();
+            
+        } catch (error) {
+            console.error('❌ 加载数据失败:', error);
+            updateStatus('加载数据失败', 'error');
+        }
+    };
+    
+    /**
+     * Auto-save data on important operations
+     */
+    function autoSaveData() {
+        if (config.saveLocationPath && config.autoSaveImages) {
+            // Silent save in background
+            try {
+                window.saveDataToFiles();
+            } catch (e) {
+                console.warn('⚠️ 自动保存数据失败:', e);
+            }
+        }
+    }
+    
     /**
      * Update cache info display
      */
@@ -4938,6 +5112,9 @@
         localStorage.setItem('historyRecords', JSON.stringify(historyRecords));
         renderHistoryGrid();
         showSuccess(config.language === 'zh' ? '历史记录已清空' : 'History cleared');
+        
+        // 🆕 Auto-save after clearing history
+        autoSaveData();
     };
     
     // 删除单条历史记录
@@ -6195,7 +6372,56 @@
             loadHistory();
             setupCharCounters();
             taskQueue.init();
+            
+            // 🆕 Auto-sync data from files (silent, non-blocking)
+            tryAutoSyncDataFromFiles();
         }, 500);
     });
+    
+    /**
+     * Try to auto-sync data from files on startup (silent)
+     */
+    async function tryAutoSyncDataFromFiles() {
+        if (!config.saveLocationPath || !config.autoSaveImages) {
+            return;
+        }
+        
+        try {
+            const fs = window.cep.fs;
+            const dataPath = config.saveLocationPath + '/data';
+            
+            // Check if data directory exists
+            if (fs.stat(dataPath).err !== 0) {
+                // No data directory, create one and save current data
+                console.log('📁 创建数据目录...');
+                fs.makedir(dataPath);
+                window.saveDataToFiles();
+                return;
+            }
+            
+            console.log('📂 检测到数据文件，准备同步...');
+            
+            // Check if files are newer than localStorage
+            const historyFile = fs.readFile(dataPath + '/history.json', 'utf8');
+            if (historyFile.err === 0) {
+                const fileData = JSON.parse(historyFile.data);
+                const fileTimestamp = new Date(fileData.timestamp || 0).getTime();
+                
+                // Get localStorage timestamp (from last save)
+                const localData = JSON.parse(localStorage.getItem('taskQueueData') || '{}');
+                const localTimestamp = localData.timestamp || 0;
+                
+                // If file is newer, suggest sync
+                if (fileTimestamp > localTimestamp) {
+                    console.log('💡 发现更新的数据文件');
+                    // Don't auto-load, just notify
+                    // User can manually click "恢复数据" if needed
+                }
+            }
+            
+        } catch (error) {
+            console.warn('⚠️ 自动同步检查失败:', error);
+        }
+    }
 
 })();
