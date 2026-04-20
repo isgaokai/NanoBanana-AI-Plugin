@@ -5781,6 +5781,12 @@
                         
                         // 重新渲染所有任务
                         this.tasks.forEach(task => {
+                            console.log(`📋 恢复任务 ${task.id}:`, {
+                                status: task.status,
+                                thumbnail: task.thumbnail,
+                                localPath: task.localPath,
+                                result: task.result
+                            });
                             this.renderTask(task);
                         });
                         
@@ -5855,8 +5861,9 @@
             const taskIndex = this.tasks.indexOf(task) + 1;
             
             // 🎯 优先使用本地缓存路径作为缩略图
-            let thumbnailSrc = task.thumbnail;
+            let thumbnailSrc = null;
             
+            // 优先级: localPath > result > thumbnail
             if (task.localPath && task.localPath.length > 0) {
                 // 将本地路径转换为 file:/// URL
                 let filePath = task.localPath.replace(/\\/g, '/');
@@ -5864,11 +5871,19 @@
                     filePath = '/' + filePath;
                 }
                 thumbnailSrc = 'file://' + filePath;
-                console.log(`📂 Task ${task.id} using local thumbnail:`, thumbnailSrc);
+                console.log(`📂 Task ${task.id} using local path:`, thumbnailSrc);
+            } else if (task.result) {
+                thumbnailSrc = task.result;
+                console.log(`🌐 Task ${task.id} using result URL:`, thumbnailSrc);
+            } else if (task.thumbnail) {
+                thumbnailSrc = task.thumbnail;
+                console.log(`🖼️ Task ${task.id} using thumbnail:`, thumbnailSrc);
+            } else {
+                console.warn(`⚠️ Task ${task.id} has no thumbnail source`);
             }
             
             // Create placeholder if no thumbnail
-            const safeThumbnail = (task.thumbnail || '').replace(/'/g, "\\'");
+            const safeThumbnail = (task.result || task.thumbnail || '').replace(/'/g, "\\'");
             const thumbnailHtml = thumbnailSrc 
                 ? `<img src="${thumbnailSrc}" alt="Task ${taskIndex}" onerror="if(!this.dataset.failed){this.dataset.failed='1';console.warn('Task thumbnail failed:', '${task.id}');if(this.src!=='${safeThumbnail}' && '${safeThumbnail}'){this.src='${safeThumbnail}'}else{this.style.opacity='0.3'}}" />`
                 : `<div class="task-placeholder">
