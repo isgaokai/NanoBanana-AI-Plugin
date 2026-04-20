@@ -1834,18 +1834,48 @@
         const mainDir = basePath + '/images';
         if (fs.stat(mainDir).err !== 0) {
             fs.makedir(mainDir);
+            console.log('📁 创建 images 文件夹');
         }
         
-        // Create subdirectories
+        // Create subdirectories for images
         const subdirs = ['generate', 'edit', 'thumbnails'];
         subdirs.forEach(dir => {
             const path = mainDir + '/' + dir;
             if (fs.stat(path).err !== 0) {
                 fs.makedir(path);
+                console.log('📁 创建子文件夹:', dir);
             }
         });
         
-        console.log('✅ 缓存目录已创建:', mainDir);
+        // 🆕 Create logs directory
+        const logsDir = basePath + '/logs';
+        if (fs.stat(logsDir).err !== 0) {
+            fs.makedir(logsDir);
+            console.log('📁 创建 logs 文件夹');
+        }
+        
+        // 🆕 Create data directory
+        const dataDir = basePath + '/data';
+        if (fs.stat(dataDir).err !== 0) {
+            fs.makedir(dataDir);
+            console.log('📁 创建 data 文件夹');
+        }
+        
+        // 🆕 Initialize log file
+        const today = new Date().toISOString().split('T')[0];
+        const logFilePath = logsDir + '/plugin_' + today + '.log';
+        if (fs.stat(logFilePath).err !== 0) {
+            const initialLog = `[${new Date().toISOString()}] [LOG] 📝 日志系统已初始化\n`;
+            fs.writeFile(logFilePath, initialLog, 'utf8');
+            console.log('📝 创建初始日志文件:', logFilePath);
+        }
+        
+        // 🆕 Force flush current logs
+        setTimeout(() => {
+            flushLogsToFile();
+        }, 1000);
+        
+        console.log('✅ 完整目录结构已创建:', basePath);
     }
     
     /**
