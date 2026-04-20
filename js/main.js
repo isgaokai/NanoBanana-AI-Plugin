@@ -5008,7 +5008,7 @@
 5. 风格和细节
 6. 适合的艺术风格标签
 
-请用英文生成prompt，格式规范，用逗号分隔关键词。`
+**重要**: 请用英文生成最终的 prompt，格式规范，用逗号分隔关键词。如果需要思考过程，请使用 <think> 标签包裹，最终的 prompt 直接输出在标签外。`
         },
         promptOptimize: {
             name: 'Prompt优化',
@@ -5022,7 +5022,7 @@
 5. 移除冗余或矛盾的词汇
 6. 添加适合的艺术家或风格参考
 
-请直接输出优化后的prompt，用英文，用逗号分隔。`
+**重要**: 请直接输出优化后的 prompt，用英文，用逗号分隔。如果需要分析过程，请使用 <think> 标签包裹，最终的 prompt 直接输出在标签外。`
         },
         styleTransfer: {
             name: '风格转换',
@@ -5036,7 +5036,7 @@
 - 赛博朋克（cyberpunk）
 - 复古（vintage, retro）
 
-请根据用户需求，生成一个包含新风格的详细prompt，用英文。`
+**重要**: 请根据用户需求，生成一个包含新风格的详细 prompt，用英文。如果需要分析过程，请使用 <think> 标签包裹，最终的 prompt 直接输出在标签外。`
         },
         detailEnhance: {
             name: '细节增强',
@@ -5051,7 +5051,7 @@
    - 光影细节（subsurface scattering, rim light, detailed shadows）
    - 特定部位增强词汇
 
-输出英文prompt，重点突出细节相关词汇。`
+**重要**: 输出英文 prompt，重点突出细节相关词汇。如果需要分析过程，请使用 <think> 标签包裹，最终的 prompt 直接输出在标签外。`
         },
         sceneExpand: {
             name: '场景扩展',
@@ -5064,7 +5064,7 @@
 4. 情境叙事（正在发生什么故事）
 5. 特殊效果（光效、粒子、特效）
 
-生成一个完整的场景prompt，用英文，包含丰富的环境描述。`
+**重要**: 生成一个完整的场景 prompt，用英文，包含丰富的环境描述。如果需要思考过程，请使用 <think> 标签包裹，最终的 prompt 直接输出在标签外。`
         },
         characterDesign: {
             name: '角色设计',
@@ -5077,7 +5077,7 @@
 4. 个性特征（气质、风格）
 5. 背景设定（职业、身份、世界观）
 
-生成专业的角色描述prompt，用英文，适合角色生成。`
+**重要**: 生成专业的角色描述 prompt，用英文，适合角色生成。如果需要分析过程，请使用 <think> 标签包裹，最终的 prompt 直接输出在标签外。`
         }
     };
     
@@ -5241,7 +5241,10 @@
             }
             
             const data = await response.json();
-            const generatedPrompt = data.choices[0].message.content;
+            let generatedPrompt = data.choices[0].message.content;
+            
+            // 🆕 Remove <think> tags and their content
+            generatedPrompt = removeThinkTags(generatedPrompt);
             
             logDebug('success', 'Prompt Generated', {
                 length: generatedPrompt.length,
@@ -5271,6 +5274,25 @@
         }
     };
     
+    /**
+     * Remove <think> tags and their content from text
+     * @param {string} text - Input text
+     * @returns {string} - Cleaned text
+     */
+    function removeThinkTags(text) {
+        if (!text) return text;
+        
+        // Remove <think>...</think> tags and content (case-insensitive, multiline)
+        let cleaned = text.replace(/<think>[\s\S]*?<\/think>/gi, '');
+        
+        // Trim whitespace
+        cleaned = cleaned.trim();
+        
+        console.log('🧹 已移除 <think> 标签');
+        
+        return cleaned;
+    }
+    
     window.copyPromptResult = function() {
         const resultText = document.getElementById('promptResult').value;
         
@@ -5284,14 +5306,18 @@
     };
     
     window.usePromptInGenerate = function() {
-        const resultText = document.getElementById('promptResult').value;
+        let resultText = document.getElementById('promptResult').value;
+        // 🆕 Remove <think> tags before applying
+        resultText = removeThinkTags(resultText);
         document.getElementById('generatePrompt').value = resultText;
         window.switchTab('generate');
         showSuccess(config.language === 'zh' ? '已应用到生成面板' : 'Applied to Generate panel');
     };
     
     window.usePromptInEdit = function() {
-        const resultText = document.getElementById('promptResult').value;
+        let resultText = document.getElementById('promptResult').value;
+        // 🆕 Remove <think> tags before applying
+        resultText = removeThinkTags(resultText);
         document.getElementById('editPrompt').value = resultText;
         window.switchTab('edit');
         showSuccess(config.language === 'zh' ? '已应用到编辑面板' : 'Applied to Edit panel');
