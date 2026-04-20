@@ -4889,7 +4889,7 @@
             
             return `
                 <div class="history-item" onclick="reImportHistoryImage('${safeUrl}', '${safeLocalPath}')" title="${safePrompt}">
-                    <img src="${thumbnailSrc}" alt="history" loading="lazy" onerror="console.warn('Thumbnail load failed, trying URL fallback'); this.src='${record.url}'">
+                    <img src="${thumbnailSrc}" alt="history" loading="lazy" onerror="if(!this.dataset.failed){this.dataset.failed='1';console.warn('Thumbnail load failed for index ${index}');if('${thumbnailSrc}'!=='${record.url}'){this.src='${record.url}'}else{this.style.display='none'}}">
                     <div class="history-item-info">
                         <span class="history-item-type ${record.type}">${typeLabel}</span>
                         <div>${timeStr}</div>
@@ -5294,8 +5294,9 @@
             }
             
             // Create placeholder if no thumbnail
+            const safeThumbnail = (task.thumbnail || '').replace(/'/g, "\\'");
             const thumbnailHtml = thumbnailSrc 
-                ? `<img src="${thumbnailSrc}" alt="Task ${taskIndex}" onerror="console.warn('Task thumbnail failed:', '${task.id}'); if(this.src !== '${task.thumbnail}') this.src='${task.thumbnail}'" />`
+                ? `<img src="${thumbnailSrc}" alt="Task ${taskIndex}" onerror="if(!this.dataset.failed){this.dataset.failed='1';console.warn('Task thumbnail failed:', '${task.id}');if(this.src!=='${safeThumbnail}' && '${safeThumbnail}'){this.src='${safeThumbnail}'}else{this.style.opacity='0.3'}}" />`
                 : `<div class="task-placeholder">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
