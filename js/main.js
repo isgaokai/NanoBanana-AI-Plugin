@@ -5223,9 +5223,22 @@
             
             const taskIndex = this.tasks.indexOf(task) + 1;
             
+            // 🎯 优先使用本地缓存路径作为缩略图
+            let thumbnailSrc = task.thumbnail;
+            
+            if (task.localPath && task.localPath.length > 0) {
+                // 将本地路径转换为 file:/// URL
+                let filePath = task.localPath.replace(/\\/g, '/');
+                if (!filePath.startsWith('/')) {
+                    filePath = '/' + filePath;
+                }
+                thumbnailSrc = 'file://' + filePath;
+                console.log(`📂 Task ${task.id} using local thumbnail:`, thumbnailSrc);
+            }
+            
             // Create placeholder if no thumbnail
-            const thumbnailHtml = task.thumbnail 
-                ? `<img src="${task.thumbnail}" alt="Task ${taskIndex}" />`
+            const thumbnailHtml = thumbnailSrc 
+                ? `<img src="${thumbnailSrc}" alt="Task ${taskIndex}" onerror="console.warn('Task thumbnail failed:', '${task.id}'); if(this.src !== '${task.thumbnail}') this.src='${task.thumbnail}'" />`
                 : `<div class="task-placeholder">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -5266,11 +5279,33 @@
                 return;
             }
             
-            if (updates.thumbnail) {
+            if (updates.thumbnail || updates.localPath) {
                 const img = item.querySelector('img');
                 if (img) {
-                    img.src = updates.thumbnail;
+                    // 🎯 优先使用本地缓存路径
+                    let thumbnailSrc = updates.thumbnail || task.thumbnail;
+                    
+                    const localPath = updates.localPath || task.localPath;
+                    if (localPath && localPath.length > 0) {
+                        // 转换为 file:/// URL
+                        let filePath = localPath.replace(/\\/g, '/');
+                        if (!filePath.startsWith('/')) {
+                            filePath = '/' + filePath;
+                        }
+                        thumbnailSrc = 'file://' + filePath;
+                        console.log(`📂 Updating to local thumbnail: ${thumbnailSrc}`);
+                    }
+                    
+                    img.src = thumbnailSrc;
                     console.log(`🖼️ Updated thumbnail for ${taskId}`);
+                    
+                    // 设置 onerror 回退
+                    img.onerror = function() {
+                        console.warn(`⚠️ Thumbnail failed for ${taskId}, trying URL fallback`);
+                        if (task.thumbnail && this.src !== task.thumbnail) {
+                            this.src = task.thumbnail;
+                        }
+                    };
                 }
             }
             
