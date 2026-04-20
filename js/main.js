@@ -2197,8 +2197,6 @@
      * Initialize logging system - intercept console methods
      */
     function initLoggingSystem() {
-        if (!config.saveLocationPath) return;
-        
         const originalConsole = {
             log: console.log,
             warn: console.warn,
@@ -2238,6 +2236,21 @@
         };
         
         console.log('✅ 日志系统已初始化');
+        
+        // Test logging immediately
+        console.log('📝 测试日志记录功能');
+        console.warn('⚠️ 测试警告日志');
+        console.error('❌ 测试错误日志');
+        
+        // Force flush after 2 seconds to test
+        setTimeout(() => {
+            if (config.saveLocationPath) {
+                flushLogsToFile();
+                console.log('💾 日志已手动刷新到文件');
+            } else {
+                console.warn('⚠️ 未设置保存位置，日志暂存在内存中');
+            }
+        }, 2000);
     }
     
     /**
