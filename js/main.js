@@ -2179,6 +2179,257 @@
         }
     }
     
+    // ========== Logging System ==========
+    
+    const LOG_BUFFER = [];
+    const MAX_LOG_BUFFER_SIZE = 1000;
+    let logFlushTimer = null;
+    
+    /**
+     * Initialize logging system - intercept console methods
+     */
+    function initLoggingSystem() {
+        if (!config.saveLocationPath) return;
+        
+        const originalConsole = {
+            log: console.log,
+            warn: console.warn,
+            error: console.error,
+            info: console.info,
+            debug: console.debug
+        };
+        
+        // Intercept console.log
+        console.log = function(...args) {
+            originalConsole.log.apply(console, args);
+            writeLog('LOG', args);
+        };
+        
+        // Intercept console.warn
+        console.warn = function(...args) {
+            originalConsole.warn.apply(console, args);
+            writeLog('WARN', args);
+        };
+        
+        // Intercept console.error
+        console.error = function(...args) {
+            originalConsole.error.apply(console, args);
+            writeLog('ERROR', args);
+        };
+        
+        // Intercept console.info
+        console.info = function(...args) {
+            originalConsole.info.apply(console, args);
+            writeLog('INFO', args);
+        };
+        
+        // Intercept console.debug
+        console.debug = function(...args) {
+            originalConsole.debug.apply(console, args);
+            writeLog('DEBUG', args);
+        };
+        
+        console.log('✅ 日志系统已初始化');
+    }
+    
+    /**
+     * Write log entry to buffer
+     */
+    function writeLog(level, args) {
+        try {
+            const timestamp = new Date().toISOString();
+            const message = args.map(arg => {
+                if (typeof arg === 'object') {
+                    try {
+                        return JSON.stringify(arg, null, 2);
+                    } catch (e) {
+                        return String(arg);
+                    }
+                }
+                return String(arg);
+            }).join(' ');
+            
+            const logEntry = {
+                timestamp,
+                level,
+                message
+            };
+            
+            LOG_BUFFER.push(logEntry);
+            
+            // Keep buffer size under control
+            if (LOG_BUFFER.length > MAX_LOG_BUFFER_SIZE) {
+                LOG_BUFFER.shift();
+            }
+            
+            // Schedule flush (debounced)
+            if (logFlushTimer) {
+                clearTimeout(logFlushTimer);
+            }
+            logFlushTimer = setTimeout(() => {
+                flushLogsToFile();
+            }, 5000); // Flush every 5 seconds
+            
+        } catch (e) {
+            // Fail silently to avoid infinite loop
+        }
+    }
+    
+    /**
+     * Flush log buffer to file
+     */
+    function flushLogsToFile() {
+        if (!config.saveLocationPath || LOG_BUFFER.length === 0) {
+            return;
+        }
+        
+        try {
+            const fs = window.cep.fs;
+            const logsPath = config.saveLocationPath + '/logs';
+            
+            // Create logs directory
+            if (fs.stat(logsPath).err !== 0) {
+                fs.makedir(logsPath);
+            }
+            
+            // Get today's log file
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            const logFilePath = logsPath + '/plugin_' + today + '.log';
+            
+            // Read existing content (if any)
+            let existingContent = '';
+            const readResult = fs.readFile(logFilePath, 'utf8');
+            if (readResult.err === 0) {
+                existingContent = readResult.data;
+            }
+            
+            // Format new log entries
+            const newEntries = LOG_BUFFER.map(entry => {
+                return `[${entry.timestamp}] [${entry.level}] ${entry.message}`;
+            }).join('\n') + '\n';
+            
+            // Append to file
+            const newContent = existingContent + newEntries;
+            const writeResult = fs.writeFile(logFilePath, newContent, 'utf8');
+            
+            if (writeResult.err === 0) {
+                // Clear buffer after successful write
+                LOG_BUFFER.length = 0;
+            }
+            
+            // Clean old logs (keep last 3 days)
+            cleanOldLogs(logsPath);
+            
+        } catch (e) {
+            // Fail silently
+        }
+    }
+    
+    /**
+     * Clean old log files (keep last 3 days)
+     */
+    function cleanOldLogs(logsPath) {
+        try {
+            const fs = window.cep.fs;
+            const result = fs.readdir(logsPath);
+            
+            if (result.err !== 0 || !result.data) return;
+            
+            const now = Date.now();
+            const threeDaysAgo = now - (3 * 24 * 60 * 60 * 1000);
+            
+            result.data.forEach(fileName => {
+                if (!fileName.endsWith('.log')) return;
+                
+                const filePath = logsPath + '/' + fileName;
+                const statResult = fs.stat(filePath);
+                
+                if (statResult.err === 0) {
+                    const fileTime = new Date(statResult.data.mtime).getTime();
+                    
+                    // Delete if older than 3 days
+                    if (fileTime < threeDaysAgo) {
+                        fs.deleteFile(filePath);
+                        console.log('🗑️ 已删除旧日志:', fileName);
+                    }
+                }
+            });
+            
+        } catch (e) {
+            // Fail silently
+        }
+    }
+    
+    /**
+     * Manually flush logs (for important events or shutdown)
+     */
+    window.flushLogs = function() {
+        flushLogsToFile();
+    };
+    
+    /**
+     * View logs in default text editor
+     */
+    window.openLogFolder = function() {
+        if (!config.saveLocationPath) {
+            updateStatus(t('message.noSaveLocation') || '请先设置保存位置', 'warning');
+            return;
+        }
+        
+        const csInterface = new CSInterface();
+        const logsPath = config.saveLocationPath + '/logs';
+        
+        // Open in Explorer/Finder
+        csInterface.evalScript(`
+            var folder = new Folder("${logsPath}");
+            if (folder.exists) {
+                folder.execute();
+            } else {
+                alert("日志文件夹不存在");
+            }
+        `);
+    };
+    
+    /**
+     * Clear all logs
+     */
+    window.clearLogs = async function() {
+        if (!config.saveLocationPath) {
+            updateStatus(t('message.noSaveLocation') || '请先设置保存位置', 'warning');
+            return;
+        }
+        
+        const confirmed = await customConfirm('确定要清除所有日志文件吗？');
+        if (!confirmed) return;
+        
+        try {
+            const fs = window.cep.fs;
+            const logsPath = config.saveLocationPath + '/logs';
+            const result = fs.readdir(logsPath);
+            
+            if (result.err === 0 && result.data) {
+                let deletedCount = 0;
+                result.data.forEach(fileName => {
+                    if (fileName.endsWith('.log')) {
+                        const filePath = logsPath + '/' + fileName;
+                        if (fs.deleteFile(filePath).err === 0) {
+                            deletedCount++;
+                        }
+                    }
+                });
+                
+                updateStatus(`已清除 ${deletedCount} 个日志文件`, 'success');
+            }
+            
+            // Clear current buffer
+            LOG_BUFFER.length = 0;
+            
+        } catch (e) {
+            console.error('清除日志失败:', e);
+            updateStatus('清除日志失败', 'error');
+        }
+    };
+    
     /**
      * Update cache info display
      */
@@ -6373,9 +6624,17 @@
             setupCharCounters();
             taskQueue.init();
             
+            // 🆕 Initialize logging system
+            initLoggingSystem();
+            
             // 🆕 Auto-sync data from files (silent, non-blocking)
             tryAutoSyncDataFromFiles();
         }, 500);
+    });
+    
+    // Flush logs before page unload
+    window.addEventListener('beforeunload', () => {
+        flushLogsToFile();
     });
     
     /**
