@@ -5179,8 +5179,64 @@
         init() {
             this.container = document.getElementById('taskQueue');
             this.setupResizeHandle();
-            this.renderEmpty();
-            console.log('✅ 任务队列系统初始化完成');
+            
+            // 🆕 从 localStorage 恢复任务队列
+            this.loadTasksFromStorage();
+            
+            if (this.tasks.length === 0) {
+                this.renderEmpty();
+            }
+            
+            console.log('✅ 任务队列系统初始化完成，恢复任务:', this.tasks.length);
+        }
+        
+        // 🆕 从 localStorage 加载任务
+        loadTasksFromStorage() {
+            try {
+                const saved = localStorage.getItem('taskQueueData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    
+                    if (Array.isArray(data.tasks)) {
+                        // 只恢复已完成和失败的任务（不恢复进行中的任务）
+                        this.tasks = data.tasks.filter(t => 
+                            t.status === 'completed' || t.status === 'failed'
+                        );
+                        
+                        console.log(`📂 从存储恢复 ${this.tasks.length} 个任务`);
+                        
+                        // 重新渲染所有任务
+                        this.tasks.forEach(task => {
+                            this.renderTask(task);
+                        });
+                        
+                        this.updateCount();
+                    }
+                    
+                    if (data.taskIdCounter) {
+                        this.taskIdCounter = data.taskIdCounter;
+                    }
+                }
+            } catch (e) {
+                console.error('❌ 加载任务队列失败:', e);
+                this.tasks = [];
+            }
+        }
+        
+        // 🆕 保存任务队列到 localStorage
+        saveTasksToStorage() {
+            try {
+                const data = {
+                    tasks: this.tasks,
+                    taskIdCounter: this.taskIdCounter,
+                    timestamp: Date.now()
+                };
+                
+                localStorage.setItem('taskQueueData', JSON.stringify(data));
+                console.log(`💾 任务队列已保存 (${this.tasks.length} 个任务)`);
+            } catch (e) {
+                console.error('❌ 保存任务队列失败:', e);
+            }
         }
         
         generateTaskId() {
@@ -5203,6 +5259,7 @@
             this.tasks.push(task);
             this.renderTask(task);
             this.updateCount();
+            this.saveTasksToStorage(); // 🆕 保存到存储
             this.processNext();
             
             console.log(`📋 任务已添加: #${this.tasks.length} (${task.type})`);
@@ -5328,6 +5385,9 @@
                     console.log(`📝 Updated status for ${taskId}: ${updates.status}`);
                 }
             }
+            
+            // 🆕 任务更新后保存到存储
+            this.saveTasksToStorage();
         }
         
         getStatusText(task) {
@@ -5600,6 +5660,7 @@
             }
             
             this.updateCount();
+            this.saveTasksToStorage(); // 🆕 保存到存储
             
             if (this.tasks.length === 0) {
                 setTimeout(() => this.renderEmpty(), 300);
