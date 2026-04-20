@@ -4773,9 +4773,24 @@
             const safePrompt = (record.prompt || '无描述').replace(/"/g, '&quot;');
             const typeLabel = record.type === 'generate' ? '生成' : '编辑';
             
+            // 🎯 优先使用本地缓存路径，确保历史记录持久可见
+            // 本地路径格式: G:/AI/images/generate/task_xxx.png
+            // 需要转换为 file:/// 协议
+            let thumbnailSrc = record.url; // 默认使用在线URL
+            
+            if (record.localPath && record.localPath.length > 0) {
+                // 将本地路径转换为 file:/// URL
+                let filePath = record.localPath.replace(/\\/g, '/');
+                if (!filePath.startsWith('/')) {
+                    filePath = '/' + filePath;
+                }
+                thumbnailSrc = 'file://' + filePath;
+                console.log('📂 Using local thumbnail:', thumbnailSrc);
+            }
+            
             return `
                 <div class="history-item" onclick="reImportHistoryImage('${safeUrl}', '${safeLocalPath}')" title="${safePrompt}">
-                    <img src="${record.url}" alt="history" loading="lazy" onerror="this.style.display='none'">
+                    <img src="${thumbnailSrc}" alt="history" loading="lazy" onerror="console.warn('Thumbnail load failed, trying URL fallback'); this.src='${record.url}'">
                     <div class="history-item-info">
                         <span class="history-item-type ${record.type}">${typeLabel}</span>
                         <div>${timeStr}</div>
