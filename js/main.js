@@ -2939,16 +2939,18 @@
         
         config.currentTab = tabName;
         
-        // Auto-refresh preview when switching to edit tab
+        // Start monitoring when switching to edit tab (but don't auto-refresh)
         if (tabName === 'edit') {
             // Only start monitoring if auto-refresh is enabled
             if (config.autoRefresh) {
                 startSelectionMonitoring();
             }
-            // Always do one manual refresh when switching
-            setTimeout(() => {
-                refreshPreview();
-            }, 300);
+            // 🆕 Don't auto-refresh, let user click "确认所选区域" button
+            // Just show the placeholder
+            const placeholder = document.getElementById('previewPlaceholder');
+            const previewImg = document.getElementById('previewImage');
+            if (placeholder) placeholder.style.display = 'flex';
+            if (previewImg) previewImg.style.display = 'none';
         } else {
             stopSelectionMonitoring();
         }
