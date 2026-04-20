@@ -233,7 +233,8 @@ function exportImageToFile(mode) {
 }
 
 // ========== Import Image Function ==========
-function importImageFromURL(localFilePath) {
+// 支持可选的大小和位置参数
+function importImageFromURL(localFilePath, targetWidth, targetHeight, targetX, targetY) {
     var originalDialogs = app.displayDialogs;
     app.displayDialogs = DialogModes.NO;
     
@@ -282,6 +283,37 @@ function importImageFromURL(localFilePath) {
             // 图层命名失败不影响主流程
         }
         
+        // 🆕 如果提供了目标大小和位置，进行调整
+        if (targetWidth && targetHeight) {
+            try {
+                // 计算缩放比例
+                var scaleX = (targetWidth / importedWidth) * 100;
+                var scaleY = (targetHeight / importedHeight) * 100;
+                
+                // 调整图层大小
+                newLayer.resize(scaleX, scaleY, AnchorPosition.TOPLEFT);
+                
+                // 如果提供了位置，移动图层
+                if (targetX !== undefined && targetY !== undefined) {
+                    // 计算当前图层的边界
+                    var bounds = newLayer.bounds;
+                    var currentX = parseFloat(bounds[0].as("px"));
+                    var currentY = parseFloat(bounds[1].as("px"));
+                    
+                    // 计算需要移动的距离
+                    var deltaX = targetX - currentX;
+                    var deltaY = targetY - currentY;
+                    
+                    // 移动图层
+                    newLayer.translate(new UnitValue(deltaX, "px"), new UnitValue(deltaY, "px"));
+                }
+                
+            } catch (transformError) {
+                // 变换失败不影响主流程，记录错误
+                return '{"success":true,"layerName":"' + String(layerName).replace(/"/g, '\\"') + '","width":' + importedWidth + ',"height":' + importedHeight + ',"warning":"Transform failed: ' + String(transformError).replace(/"/g, '') + '"}';
+            }
+        }
+        
         app.displayDialogs = originalDialogs;
         
         return '{"success":true,"layerName":"' + String(layerName).replace(/"/g, '\\"') + '","width":' + importedWidth + ',"height":' + importedHeight + '}';
@@ -293,6 +325,7 @@ function importImageFromURL(localFilePath) {
 }
 
 // ========== Move Layer to Index ==========
+// 注意：Photoshop 的 itemIndex 从 1 开始，layers 数组从 0 开始
 function moveLayerToIndex(targetIndex) {
     try {
         if (!app.documents.length) {
@@ -302,29 +335,37 @@ function moveLayerToIndex(targetIndex) {
         var doc = app.activeDocument;
         var currentLayer = doc.activeLayer;
         
-        // 验证目标索引
-        if (targetIndex < 0 || targetIndex > doc.layers.length) {
-            return '{"error":"Invalid layer index"}';
+        // 验证目标索引（itemIndex 是从 1 开始的）
+        if (targetIndex < 1 || targetIndex > doc.layers.length) {
+            return '{"error":"Invalid layer index: ' + targetIndex + ' (total layers: ' + doc.layers.length + ')"}';
         }
         
         // 移动到目标位置
         try {
-            // 如果目标索引是当前位置，不需要移动
+            // 如果已经在目标位置，不需要移动
             if (currentLayer.itemIndex === targetIndex) {
-                return '{"success":true,"message":"Layer already at target position"}';
+                return '{"success":true,"message":"Layer already at target position","layerIndex":' + currentLayer.itemIndex + '}';
             }
             
-            // 使用 move 方法移动图层
-            if (targetIndex === 0) {
-                // 移动到顶部
-                currentLayer.move(doc, ElementPlacement.PLACEATBEGINNING);
-            } else {
-                // 移动到指定位置
-                var targetLayer = doc.layers[targetIndex];
-                currentLayer.move(targetLayer, ElementPlacement.PLACEAFTER);
-            }
+            // 🔧 使用 ActionDescriptor 进行更精确的图层重新排序
+            var idmove = stringIDToTypeID("move");
+            var desc = new ActionDescriptor();
             
-            return '{"success":true,"layerIndex":' + currentLayer.itemIndex + '}';
+            // 指定要移动的图层（当前活动图层）
+            var idnull = stringIDToTypeID("null");
+            var ref = new ActionReference();
+            ref.putEnumerated(stringIDToTypeID("layer"), stringIDToTypeID("ordinal"), stringIDToTypeID("targetEnum"));
+            desc.putReference(idnull, ref);
+            
+            // 指定目标位置
+            var idT = stringIDToTypeID("to");
+            var ref2 = new ActionReference();
+            ref2.putIndex(stringIDToTypeID("layer"), targetIndex);
+            desc.putReference(idT, ref2);
+            
+            executeAction(idmove, desc, DialogModes.NO);
+            
+            return '{"success":true,"layerIndex":' + doc.activeLayer.itemIndex + ',"targetIndex":' + targetIndex + '}';
             
         } catch (moveError) {
             return '{"error":"Failed to move layer: ' + String(moveError).replace(/"/g, '') + '"}';

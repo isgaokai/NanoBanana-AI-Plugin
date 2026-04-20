@@ -3262,6 +3262,105 @@
         }
     }
 
+    // ========== Import Image with Transform (Size + Position) ==========
+    async function importImageWithTransform(imageUrl, localCachePath, targetWidth, targetHeight, targetX, targetY) {
+        console.log('========================================');
+        console.log('📐 Import with Transform');
+        console.log('🔗 URL:', imageUrl);
+        console.log('💾 Local:', localCachePath || 'N/A');
+        console.log(`📏 Target Size: ${targetWidth}x${targetHeight}`);
+        console.log(`📍 Target Position: (${targetX}, ${targetY})`);
+        console.log('========================================');
+        
+        // Determine which path to use
+        let imagePath = localCachePath;
+        
+        // If no local cache, download first
+        if (!localCachePath || !window.cep || !window.cep.fs) {
+            // Need to download
+            showLoading(
+                config.language === 'zh' ? '下载图片...' : 'Downloading image...',
+                config.language === 'zh' ? '正在从服务器获取' : 'Fetching from server'
+            );
+            
+            // Download to temp file (reuse download logic from importImage)
+            const https = require('https');
+            const http = require('http');
+            const fs = require('fs');
+            const os = require('os');
+            const path = require('path');
+            const urlModule = require('url');
+            
+            const tempDir = path.join(os.tmpdir(), 'nanobanana_temp');
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+            
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 10000);
+            const ext = imageUrl.match(/\.(png|jpg|jpeg|webp)$/i) ? 
+                       imageUrl.match(/\.(png|jpg|jpeg|webp)$/i)[0] : '.png';
+            imagePath = path.join(tempDir, `nanoBanana_transform_${timestamp}_${random}${ext}`);
+            
+            // Download
+            await new Promise((resolve, reject) => {
+                const file = fs.createWriteStream(imagePath);
+                const parsedUrl = urlModule.parse(imageUrl);
+                const protocol = parsedUrl.protocol === 'https:' ? https : http;
+                
+                protocol.get(imageUrl, (response) => {
+                    if (response.statusCode !== 200) {
+                        file.close();
+                        fs.unlinkSync(imagePath);
+                        reject(new Error(`HTTP ${response.statusCode}`));
+                        return;
+                    }
+                    response.pipe(file);
+                    file.on('finish', () => {
+                        file.close();
+                        resolve();
+                    });
+                }).on('error', (err) => {
+                    file.close();
+                    try { fs.unlinkSync(imagePath); } catch (e) {}
+                    reject(err);
+                });
+            });
+        } else {
+            // Check if local cache exists
+            const fs = window.cep.fs;
+            const statResult = fs.stat(localCachePath);
+            if (statResult.err !== 0) {
+                throw new Error('Local cache file not found: ' + localCachePath);
+            }
+        }
+        
+        // Import with transform
+        showLoading(
+            config.language === 'zh' ? '导入到 Photoshop...' : 'Importing to Photoshop...',
+            config.language === 'zh' ? '调整大小和位置' : 'Adjusting size and position'
+        );
+        
+        console.log('🎨 Calling JSX with transform parameters...');
+        
+        try {
+            // Call JSX with all parameters
+            const result = await callJSX('importImageFromURL', [imagePath, targetWidth, targetHeight, targetX, targetY]);
+            console.log('✅ Transform import result:', result);
+            
+            if (result && result.error) {
+                throw new Error(result.error);
+            }
+            
+            hideLoading();
+            return result;
+            
+        } catch (error) {
+            console.error('❌ Transform import failed:', error);
+            throw error;
+        }
+    }
+
     // ========== API Calls ==========
     async function callNanoBananaAPI(body, showProgress = true) {
         if (!config.apiKey) {
@@ -5711,20 +5810,32 @@
                 const localPath = task.localPath || null;
                 
                 if (mode === 'original' && task.originalLayerInfo) {
-                    // 导入到原位置
+                    // 导入到原位置（带大小和位置调整）
                     console.log('📍 导入到原图层位置:', task.originalLayerInfo);
                     
-                    // 先导入为新图层
-                    const result = await importImage(imageUrl, localPath);
+                    const layerInfo = task.originalLayerInfo;
+                    
+                    // 🆕 使用增强的导入函数，传递目标大小和位置
+                    // 参数：imageUrl, localPath, targetWidth, targetHeight, targetX, targetY
+                    const targetWidth = layerInfo.width;
+                    const targetHeight = layerInfo.height;
+                    const targetX = layerInfo.selectionBounds ? layerInfo.selectionBounds.left : 0;
+                    const targetY = layerInfo.selectionBounds ? layerInfo.selectionBounds.top : 0;
+                    
+                    console.log(`📐 目标尺寸: ${targetWidth}x${targetHeight}, 位置: (${targetX}, ${targetY})`);
+                    
+                    // 调用增强的导入函数
+                    const result = await importImageWithTransform(imageUrl, localPath, targetWidth, targetHeight, targetX, targetY);
                     
                     if (result && result.success) {
-                        // 移动到原位置
-                        await this.moveLayerToPosition(task.originalLayerInfo.layerIndex);
+                        // 移动到原图层索引位置
+                        console.log(`🔄 移动到图层索引: ${layerInfo.layerIndex}`);
+                        await this.moveLayerToPosition(layerInfo.layerIndex);
                         
                         updateStatus(t('message.importedToOriginal') || '已导入到原图层位置', 'success');
                     }
                 } else {
-                    // 导入为新图层
+                    // 导入为新图层（不调整大小和位置）
                     await importImage(imageUrl, localPath);
                     updateStatus(t('message.importedAsNew') || '已导入为新图层', 'success');
                 }
