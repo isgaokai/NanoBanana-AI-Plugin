@@ -3344,8 +3344,8 @@
         console.log('🎨 Calling JSX with transform parameters...');
         
         try {
-            // Call JSX with all parameters
-            const result = await callJSX('importImageFromURL', [imagePath, targetWidth, targetHeight, targetX, targetY]);
+            // Call JSX with all parameters (spread array to individual arguments)
+            const result = await callJSX('importImageFromURL', imagePath, targetWidth, targetHeight, targetX, targetY);
             console.log('✅ Transform import result:', result);
             
             if (result && result.error) {
