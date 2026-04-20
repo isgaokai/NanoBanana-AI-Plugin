@@ -5307,10 +5307,10 @@
             
             item.innerHTML = `
                 ${thumbnailHtml}
-                <div class="task-progress" style="width: 0%"></div>
+                <div class="task-progress" style="width: ${task.progress || 0}%"></div>
                 <div class="task-type-badge ${task.type}">${task.type === 'generate' ? t('tabs.generate') : t('tabs.edit')}</div>
                 <div class="task-number">${taskIndex}</div>
-                <div class="task-status ${task.status}">${t('queue.status.pending')}</div>
+                <div class="task-status ${task.status}">${this.getStatusText(task)}</div>
             `;
             
             // Click to view details
