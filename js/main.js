@@ -5338,30 +5338,48 @@
             }
             
             if (updates.thumbnail || updates.localPath) {
-                const img = item.querySelector('img');
-                if (img) {
-                    // 🎯 优先使用本地缓存路径
-                    let thumbnailSrc = updates.thumbnail || task.thumbnail;
-                    
-                    const localPath = updates.localPath || task.localPath;
-                    if (localPath && localPath.length > 0) {
-                        // 转换为 file:/// URL
-                        let filePath = localPath.replace(/\\/g, '/');
-                        if (!filePath.startsWith('/')) {
-                            filePath = '/' + filePath;
-                        }
-                        thumbnailSrc = 'file://' + filePath;
-                        console.log(`📂 Updating to local thumbnail: ${thumbnailSrc}`);
+                // 🎯 优先使用本地缓存路径
+                let thumbnailSrc = updates.thumbnail || task.thumbnail;
+                
+                const localPath = updates.localPath || task.localPath;
+                if (localPath && localPath.length > 0) {
+                    // 转换为 file:/// URL
+                    let filePath = localPath.replace(/\\/g, '/');
+                    if (!filePath.startsWith('/')) {
+                        filePath = '/' + filePath;
                     }
-                    
+                    thumbnailSrc = 'file://' + filePath;
+                    console.log(`📂 Updating to local thumbnail: ${thumbnailSrc}`);
+                }
+                
+                let img = item.querySelector('img');
+                const placeholder = item.querySelector('.task-placeholder');
+                
+                if (img) {
+                    // 已有 img，直接更新
                     img.src = thumbnailSrc;
                     console.log(`🖼️ Updated thumbnail for ${taskId}`);
-                    
-                    // 设置 onerror 回退
+                } else if (placeholder && thumbnailSrc) {
+                    // 占位符存在，替换为真实图片
+                    const newImg = document.createElement('img');
+                    newImg.src = thumbnailSrc;
+                    newImg.alt = `Task ${taskId}`;
+                    placeholder.replaceWith(newImg);
+                    img = newImg;
+                    console.log(`🖼️ Replaced placeholder with thumbnail for ${taskId}`);
+                }
+                
+                // 设置 onerror 回退
+                if (img) {
                     img.onerror = function() {
-                        console.warn(`⚠️ Thumbnail failed for ${taskId}, trying URL fallback`);
-                        if (task.thumbnail && this.src !== task.thumbnail) {
-                            this.src = task.thumbnail;
+                        if (!this.dataset.failed) {
+                            this.dataset.failed = '1';
+                            console.warn(`⚠️ Thumbnail failed for ${taskId}, trying URL fallback`);
+                            if (task.thumbnail && this.src !== task.thumbnail) {
+                                this.src = task.thumbnail;
+                            } else {
+                                this.style.opacity = '0.3';
+                            }
                         }
                     };
                 }
