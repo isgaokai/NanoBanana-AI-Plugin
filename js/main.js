@@ -1234,6 +1234,7 @@
             'tools.title': 'PS Tools',
             'tools.selection': 'Selection Tools',
             'tools.paint': 'Paint Tools',
+            'tools.quickActions': 'Quick Actions',
             'tools.rect': 'Rect',
             'tools.ellipse': 'Ellipse',
             'tools.lasso': 'Lasso',
@@ -1250,6 +1251,9 @@
             'tools.zoomOut': 'Zoom Out',
             'tools.pen': 'Pen',
             'tools.resetColors': 'Reset Colors',
+            'tools.stamp': 'Stamp',
+            'tools.invert': 'Invert',
+            'tools.acr': 'ACR',
             'edit.preview': 'Selection Preview',
             'edit.preset': 'Select Preset',
             'preview.select': 'Confirm Selection',
@@ -1345,6 +1349,7 @@
             'tools.title': 'PS 工具',
             'tools.selection': '选区工具',
             'tools.paint': '绘画工具',
+            'tools.quickActions': '快捷操作',
             'tools.rect': '矩形',
             'tools.ellipse': '椭圆',
             'tools.lasso': '套索',
@@ -1361,6 +1366,9 @@
             'tools.zoomOut': '缩小',
             'tools.pen': '钢笔',
             'tools.resetColors': '黑白',
+            'tools.stamp': '盖印',
+            'tools.invert': '反选',
+            'tools.acr': 'ACR',
             'edit.preview': '选区预览',
             'edit.preset': '选择预设',
             'preview.select': '确认所选区域',
@@ -3097,6 +3105,99 @@
         } catch (error) {
             console.error('Reset colors failed:', error);
             logDebug('error', 'Reset Colors Failed', { error: error.message });
+        }
+    };
+    
+    // ========== Quick Actions ==========
+    
+    /**
+     * Stamp visible layers (Ctrl+Alt+Shift+E)
+     * 盖印可见图层
+     */
+    window.stampVisibleLayers = async function() {
+        try {
+            showLoading(
+                config.language === 'zh' ? '盖印可见图层...' : 'Merging visible layers...',
+                ''
+            );
+            
+            // Execute keyboard shortcut via JSX
+            const result = await callJSX('executeMenuCommand', 'mergeCopy');
+            
+            hideLoading();
+            
+            if (result && result.success) {
+                updateStatus(
+                    config.language === 'zh' ? '已盖印可见图层' : 'Visible layers stamped',
+                    'success'
+                );
+                console.log('✅ 盖印可见图层完成');
+            } else {
+                throw new Error(result?.error || 'Failed to stamp layers');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('❌ 盖印图层失败:', error);
+            updateStatus(
+                config.language === 'zh' ? '盖印失败' : 'Stamp failed',
+                'error'
+            );
+        }
+    };
+    
+    /**
+     * Invert selection (Ctrl+Shift+I)
+     * 反向选择
+     */
+    window.invertSelection = async function() {
+        try {
+            const result = await callJSX('executeMenuCommand', 'inverse');
+            
+            if (result && result.success) {
+                updateStatus(
+                    config.language === 'zh' ? '已反向选择' : 'Selection inverted',
+                    'success'
+                );
+                console.log('✅ 反向选择完成');
+            } else {
+                throw new Error(result?.error || 'Failed to invert selection');
+            }
+        } catch (error) {
+            console.error('❌ 反向选择失败:', error);
+            updateStatus(
+                config.language === 'zh' ? '反选失败，请先创建选区' : 'Invert failed, please create a selection first',
+                'warning'
+            );
+        }
+    };
+    
+    /**
+     * Open Camera Raw filter (Ctrl+Shift+A)
+     * 打开 Camera Raw 滤镜
+     */
+    window.openCameraRaw = async function() {
+        try {
+            showLoading(
+                config.language === 'zh' ? '打开 Camera Raw...' : 'Opening Camera Raw...',
+                ''
+            );
+            
+            const result = await callJSX('executeMenuCommand', 'cameraRawFilter');
+            
+            hideLoading();
+            
+            if (result && result.success) {
+                console.log('✅ Camera Raw 已打开');
+            } else {
+                throw new Error(result?.error || 'Failed to open Camera Raw');
+            }
+        } catch (error) {
+            hideLoading();
+            console.error('❌ 打开 Camera Raw 失败:', error);
+            updateStatus(
+                config.language === 'zh' ? '无法打开 Camera Raw' : 'Failed to open Camera Raw',
+                'error'
+            );
         }
     };
     

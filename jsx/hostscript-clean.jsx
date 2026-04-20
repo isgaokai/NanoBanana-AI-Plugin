@@ -41,6 +41,49 @@ function deselectAll() {
     }
 }
 
+// ========== Menu Command Execution ==========
+/**
+ * Execute Photoshop menu command by ID
+ * @param {string} commandId - The menu command ID
+ * @return {string} JSON result
+ */
+function executeMenuCommand(commandId) {
+    try {
+        if (!app.documents.length) {
+            return '{"error":"No document open"}';
+        }
+        
+        var commandMap = {
+            'mergeCopy': { charID: 'Mrg2', event: 'none' },  // 盖印可见图层 (Ctrl+Alt+Shift+E)
+            'inverse': { charID: 'Invs', event: 'none' },    // 反向选择 (Ctrl+Shift+I)
+            'cameraRawFilter': { stringID: 'Camera Raw Filter', event: 'none' }  // Camera Raw (Ctrl+Shift+A)
+        };
+        
+        var command = commandMap[commandId];
+        if (!command) {
+            return '{"error":"Unknown command: ' + commandId + '"}';
+        }
+        
+        var desc = new ActionDescriptor();
+        var idCmd;
+        
+        if (command.charID) {
+            idCmd = charIDToTypeID(command.charID);
+        } else if (command.stringID) {
+            idCmd = stringIDToTypeID(command.stringID);
+        }
+        
+        executeAction(idCmd, desc, DialogModes.NO);
+        
+        return '{"success":true}';
+    } catch (e) {
+        return '{"error":"' + String(e).replace(/"/g, '') + '"}';
+    }
+}
+
+// Register global function
+$.global.executeMenuCommand = executeMenuCommand;
+
 // ========== Color Functions ==========
 function resetColors() {
     try {
